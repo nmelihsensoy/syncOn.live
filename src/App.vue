@@ -1,28 +1,41 @@
 <template>
   <div id="app">
-    <img alt="Vue logo" src="./assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js App"/>
+      <NavBar></NavBar>
+      <router-view/>
+    <Footer></Footer>   
   </div>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld.vue'
+
+import NavBar from './components/NavBar'
+import Footer from './components/Footer'
+import Vue from 'vue'
+import Buefy from 'buefy'
+import 'buefy/dist/buefy.css'
+
+import VuePlyr from 'vue-plyr'
+import 'vue-plyr/dist/vue-plyr.css'
+
+Vue.use(VuePlyr)
+Vue.use(Buefy)
 
 export default {
   name: 'app',
   components: {
-    HelloWorld
+    NavBar,
+    Footer
   }
 }
 </script>
 
 <style>
-#app {
-  font-family: 'Avenir', Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
+
+html, body {
+  height: 100%;
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
 }
+
 </style>
