@@ -1,5 +1,6 @@
 <template>
     <div class="main">
+        <NavBar></NavBar>
         <section class="hero is-primary is-bold">
         <div class="hero-body">
             <div class="container">
@@ -65,8 +66,13 @@
 </template>
 
 <script>
+import NavBar from '../components/NavBar'
+
 export default {
     name: 'home',
+    components:{
+        NavBar
+    },
     data : function() {
         return{
             join : false,

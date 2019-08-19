@@ -1,6 +1,5 @@
 <template>
   <div id="app">
-      <NavBar></NavBar>
       <router-view/>
     <Footer></Footer>   
   </div>
@@ -8,22 +7,24 @@
 
 <script>
 
-import NavBar from './components/NavBar'
 import Footer from './components/Footer'
 import Vue from 'vue'
-
-import 'bulma/css/bulma.css'
-
 import VuePlyr from 'vue-plyr'
 import 'vue-plyr/dist/vue-plyr.css'
+
+import 'bulma/css/bulma.css'
 
 Vue.use(VuePlyr)
 
 export default {
   name: 'app',
   components: {
-    NavBar,
     Footer
+  },
+  data : function() {
+      return{
+          form_data : false
+      }
   }
 }
 </script>

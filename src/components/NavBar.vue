@@ -22,20 +22,18 @@
                 About
             </router-link>
             </div>
-
-            <div v-if="this.$route.name === 'room'" class="navbar-start" style="flex-grow: 1; justify-content: center;">
+            <div v-if="this.$route.name === 'room'" class="navbar-start queue-input">
                 <div class="field has-addons navbar-item">
                     <div class="control">
-                        <input class="input" type="text" placeholder="add video to queue">
+                        <input v-model="video_url" v-on:keyup.enter="sendUrl" class="input" type="text" placeholder="add video to queue">
                     </div>
                     <div class="control">
-                        <a class="button is-dark">
+                        <a class="button is-dark" @click="sendUrl">
                         Add
                         </a>
                     </div>
                 </div>
             </div>
-
             <div v-if="this.$route.name !== 'room'" class="navbar-end">
                 <div class="navbar-item">
                     <div class="buttons">
@@ -67,9 +65,19 @@
 <script>
 export default {
     name : 'NavBar',
+    props: ['videoUrl'],
+    data : function() {
+        return{
+            video_url : ''
+        }
+    },
     methods : {
         isActive: function () {
             return 'is-active';
+        },
+        sendUrl : function(){
+            this.$emit('urlSended', this.video_url);
+            this.video_url = '';
         }
     }
 }
@@ -80,4 +88,14 @@ export default {
     .navbar{
         border-top: 1px solid #00D1B2;
     }
+
+    .queue-input{
+        flex-grow: 1; 
+        justify-content: center !important;
+    }
+
+    .queue-input input{
+        width: 300px;
+    }
+
 </style>
