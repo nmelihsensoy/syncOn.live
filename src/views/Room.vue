@@ -16,13 +16,24 @@
 </template>
 
 <script>
+import io from "socket.io-client";
 
 export default {
     name: 'room',
     data : function() {
         return{
-            roomId : this.$route.params.id
+            roomId : thiss.$route.params.id,
+            socket : {},
+            test
         }
+    },
+    created (){ 
+        this.socket = io("http://192.168.0.31:3000")
+    },
+    mounted(){
+        this.socket.on("test", data => {
+            test = data
+        });
     }
 }
 </script>
