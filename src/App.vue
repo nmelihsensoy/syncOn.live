@@ -11,14 +11,13 @@
 import NavBar from './components/NavBar'
 import Footer from './components/Footer'
 import Vue from 'vue'
-import Buefy from 'buefy'
-import 'buefy/dist/buefy.css'
+
+import 'bulma/css/bulma.css'
 
 import VuePlyr from 'vue-plyr'
 import 'vue-plyr/dist/vue-plyr.css'
 
 Vue.use(VuePlyr)
-Vue.use(Buefy)
 
 export default {
   name: 'app',
