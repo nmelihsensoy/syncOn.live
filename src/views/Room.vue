@@ -89,12 +89,23 @@ export default {
     methods : {
         clearPlaylist : function(){
             this.videoList = [];
+            this.clearPlayer();
         },
         alert_test : (a) => {
             alert(a)
         },
         clearPlayer : function(){
-            
+            this.player.source = {
+                type: 'video',
+                title: 'Playlist Empty',
+                sources: [
+                    {
+                        src: './assets/blank.mp4',
+                        type: 'video/mp4',
+                        size: 720,
+                    }
+                ]
+            };
         },
         addToPlaylist : function(video){
             this.player.source = {
@@ -122,7 +133,9 @@ export default {
                 .finally(() => this.loading = false)
         },
         urlSended : function(data){
-            //this.videoList.push(data);
+            if(this.videoList.length === 0){
+                this.addToPlaylist(data)
+            }
             this.fetchVideoInfo(data)
         }
     },
@@ -130,9 +143,18 @@ export default {
         this.socket = io("http://192.168.0.31:3000")
     },
     mounted(){
-        this.socket.on("test", data => {
-            test = data
+        this.socket.on('test', data => {
+            console.log(data)
         });
+        //this.player.on('statechange', event => {
+        //    //console.log(event.detail);
+        //});
+        this.player.on('pause', event => {
+            console.log(event);
+        });
+        this.player.once('ready', event =>{
+            this.clearPlayer();
+        })
     },
     computed: {
         player () { return this.$refs.plyr.player }
