@@ -48,7 +48,7 @@
                             <div class="field is-grouped is-grouped-right">
                                 <p class="control">
                                     <router-link :to="{ name: 'room', params: { id: roomId }}"><a class="button is-primary">
-                                    Submit
+                                    Join
                                     </a></router-link>
                                 </p>
                                 <p class="control">

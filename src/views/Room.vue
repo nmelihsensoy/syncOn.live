@@ -8,7 +8,7 @@
                     <vue-plyr ref="plyr">
                         <div class="plyr__video-embed">
                             <iframe
-                            src="https://www.youtube.com/embed/bTqVqk7FSmY?iv_load_policy=3&modestbranding=1&playsinline=1&showinfo=0&rel=0&enablejsapi=1"
+                            src="https://www.youtube.com/embed/?iv_load_policy=3&modestbranding=1&playsinline=1&showinfo=0&rel=0&enablejsapi=1"
                             allowfullscreen allowtransparency >
                             </iframe>
                         </div>
@@ -20,7 +20,7 @@
                             Playlist
                         </p>
                         <div class="panel-main-scroll">
-                            <a class="panel-block is-active">
+                            <!---<a class="panel-block is-active">
                                 <div class="media">
                                     <div class="media-left">
                                         <figure class="image is-64x64">
@@ -32,23 +32,23 @@
                                         <p class="subtitle is-6">@johnsmith</p>
                                     </div>
                                 </div>
-                            </a>
-                            <a v-for="(video, index) in videoList" v-bind:key="index" class="panel-block">
+                            </a>--->
+                            <a v-for="(video, index) in videoList" v-bind:key="index" v-on:click="addToPlaylist(video.v_id)" class="panel-block">
                                 <div class="media">
                                     <div class="media-left">
-                                        <figure class="image is-48x48">
-                                        <img src="https://bulma.io/images/placeholders/96x96.png" alt="Placeholder image">
+                                        <figure class="image is-64x64">
+                                        <img :src="video.thumbnail" alt="Placeholder image">
                                         </figure>
                                     </div>
                                     <div class="media-content">
-                                        <p class="title is-5">{{ video }}</p>
-                                        <p class="subtitle is-6">@johnsmith</p>
+                                        <p class="title is-6">{{ video.title }}</p>
+                                        <p class="subtitle is-6"></p>
                                     </div>
                                 </div>
                             </a>
                         </div>
                         <div class="panel-block custom1">
-                            <button class="button is-link is-outlined">
+                            <button class="button is-link is-outlined" @click="clearPlaylist">
                             clear playlist
                             </button>
                         </div>
@@ -64,6 +64,11 @@
 import io from "socket.io-client";
 import NavBar from '../components/NavBar';
 
+const getVideoId = require('get-video-id');
+const axios = require('axios');
+
+const YOUTUBE_API_KEY = 'AIzaSyAC7Fwlehe6_yjOxG1zVYtWhD9gEID0FME';
+
 export default {
     name: 'room',
     components:{
@@ -75,23 +80,50 @@ export default {
             socket : {},
             videoList : [],
             test : null,
-            videoUrl : ''
+            videoId : '',
+            loading: true,
+            errored: false,
+            info: {}
         }
     },
     methods : {
-        urlSended : function(data){
-            this.videoList.push(data);
-            /*
+        clearPlaylist : function(){
+            this.videoList = [];
+        },
+        alert_test : (a) => {
+            alert(a)
+        },
+        clearPlayer : function(){
+            
+        },
+        addToPlaylist : function(video){
             this.player.source = {
                 type: 'video',
                 sources: [
                     {
-                        src: data,
+                        src: video,
                         provider: 'youtube',
                     },
                 ],
             };
-            */
+        },
+        fetchVideoInfo : function(videoUrl){
+            var video_id = getVideoId(videoUrl).id;
+            axios
+                .get('https://www.googleapis.com/youtube/v3/videos?id='+ video_id +'&key='+ YOUTUBE_API_KEY +'&part=snippet,contentDetails,statistics,status')
+                .then(response => {
+                
+                    this.videoList.push({url: videoUrl, v_id: video_id, title: response.data.items[0].snippet.title, thumbnail:response.data.items[0].snippet.thumbnails.default.url})
+                })
+                .catch(error => {
+                    console.log(error)
+                    this.errored = true
+                })
+                .finally(() => this.loading = false)
+        },
+        urlSended : function(data){
+            //this.videoList.push(data);
+            this.fetchVideoInfo(data)
         }
     },
     created (){ 
