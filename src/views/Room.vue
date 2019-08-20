@@ -19,7 +19,10 @@
                         <p class="panel-heading">
                             Playlist
                         </p>
-                        <div class="panel-main-scroll">
+                        <div v-show="this.videoList.length === 0" class="columns empty-plist is-gapless has-text-centered is-vcentered is-centered">
+                            Empty
+                        </div>
+                        <div v-show="this.videoList.length != 0" class="panel-main-scroll">
                             <!---<a class="panel-block is-active">
                                 <div class="media">
                                     <div class="media-left">
@@ -33,7 +36,7 @@
                                     </div>
                                 </div>
                             </a>--->
-                            <a v-for="(video, index) in videoList" v-bind:key="index" v-on:click="addToPlaylist(video.v_id)" class="panel-block">
+                            <a v-for="(video, index) in videoList" v-bind:key="index" v-on:click="addToPlaylist(video)" :class="{'panel-block' : true, 'is-active': playlistUiActive(video)}">
                                 <div class="media">
                                     <div class="media-left">
                                         <figure class="image is-64x64">
@@ -42,14 +45,17 @@
                                     </div>
                                     <div class="media-content">
                                         <p class="title is-6">{{ video.title }}</p>
-                                        <p class="subtitle is-6"></p>
+            
                                     </div>
                                 </div>
                             </a>
                         </div>
-                        <div class="panel-block custom1">
+                        <div class="panel-block custom1 buttons">
                             <button class="button is-link is-outlined" @click="clearPlaylist">
                             clear playlist
+                            </button>
+                            <button class="button is-danger is-outlined" @click="deleteFromPlaylist">
+                            delete selected
                             </button>
                         </div>
                     </nav>
@@ -83,7 +89,9 @@ export default {
             videoId : '',
             loading: true,
             errored: false,
-            info: {}
+            info: {},
+            videoState : null,
+            playingVideo : {}
         }
     },
     methods : {
@@ -108,11 +116,12 @@ export default {
             };
         },
         addToPlaylist : function(video){
+            this.playingVideo = video;
             this.player.source = {
                 type: 'video',
                 sources: [
                     {
-                        src: video,
+                        src: video.url,
                         provider: 'youtube',
                     },
                 ],
@@ -134,9 +143,31 @@ export default {
         },
         urlSended : function(data){
             if(this.videoList.length === 0){
-                this.addToPlaylist(data)
+                this.addToPlaylist({url: data})
             }
             this.fetchVideoInfo(data)
+        },
+        playlistUiActive : function(data){
+            if(data.url === this.playingVideo.url || data.v_id === this.playingVideo.v_id){
+                return true;
+            }else{
+                return false;
+            }
+        },
+        deleteFromPlaylist : function(){
+            var index = this.videoList.indexOf(this.playingVideo);
+ 
+            this.videoList.splice(index, 1);
+            
+            if(this.videoList.length == 0){
+                this.clearPlayer();
+            }else if(this.videoList.length == 1){
+                this.addToPlaylist(this.videoList[0]);
+            }else if(this.videoList.length == index){
+                this.clearPlayer();
+            }else{
+                this.addToPlaylist(this.videoList[index+1]);
+            }
         }
     },
     created (){ 
@@ -152,9 +183,22 @@ export default {
         this.player.on('pause', event => {
             console.log(event);
         });
-        this.player.once('ready', event =>{
+        this.player.once('ready', event =>{ //player init
             this.clearPlayer();
-        })
+        });
+
+        this.player.on('progress', event =>{
+            this.videoState = event
+        });
+
+        this.player.on('pause', event => {
+            this.videoState = 'Paused'
+        });
+
+        this.player.on('seeked', event => {
+            this.videoState = 'Seeked'
+        });
+
     },
     computed: {
         player () { return this.$refs.plyr.player }
@@ -170,6 +214,9 @@ export default {
 
     .panel-main-scroll{
         max-height: 250px;
+        border-left: 1px solid #dbdbdb;
+        border-right: 1px solid #dbdbdb;
+        height: 250px;
         overflow: auto;
     }
 
@@ -178,6 +225,25 @@ export default {
     }
 
     .custom1{
-        border-top: 1px solid #000;
+        border-top: 1px solid #dbdbdb;
+    }
+
+    .empty-plist{
+        border-left: 1px solid #dbdbdb;
+        border-right: 1px solid #dbdbdb;
+        height: 250px;
+        margin-bottom: 0 !important;
+    }
+
+    .x-button{
+        color: white;
+        background-color: #dbdbdb;
+        border-radius: 10px;
+        padding: 6px;
+    }
+
+    .x-button:hover{
+        background-color: #333;
+        cursor: pointer;
     }
 </style>

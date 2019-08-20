@@ -87,6 +87,7 @@ export default {
 <style>
     .navbar{
         border-top: 1px solid #00D1B2;
+        border-bottom: 4px solid #dbdbdb;
     }
 
     .queue-input{
