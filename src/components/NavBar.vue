@@ -71,7 +71,8 @@ export default {
     data : function() {
         return{
             video_url : null,
-            urlValid : true
+            urlValid : true,
+            dropdown : false
         }
     },
     methods : {

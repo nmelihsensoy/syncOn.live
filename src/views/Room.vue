@@ -12,7 +12,7 @@
                             allowfullscreen allowtransparency >
                             </iframe>
                         </div>
-                        </vue-plyr>
+                    </vue-plyr>
                 </div>
                 <div class="column">
                     <nav class="panel">
@@ -58,6 +58,46 @@
                             delete selected
                             </button>
                         </div>
+                    </nav>
+                    <nav class="panel">
+                        <p class="panel-heading">
+                            Users
+                        </p>
+                        <a class="panel-block user-block is-block is-active">
+                            melih <span class="tag is-success perm-tag">You</span>
+                            <span class="tag is-info perm-tag">Owner</span>
+                            <div class="user-buttons is-pulled-right">
+                                <div class="buttons">
+                                    <div class="tooltip">
+                                        <span class="tooltiptext">Make Admin</span>
+                                        <a class="button is-small tooltip-trigger">
+                                            <span class="icon is-small">
+                                                <i class="lni-key"></i>
+                                            </span>
+                                        </a>
+                                    </div>
+                                    <div class="tooltip">
+                                        <span class="tooltiptext">Edit Username</span>
+                                        <a class="button is-small tooltip-trigger">
+                                            <span class="icon is-small">
+                                                <i class="lni-pencil"></i>
+                                            </span>
+                                        </a>
+                                    </div>
+                                    <div class="tooltip">
+                                        <span class="tooltiptext">Kick</span>
+                                        <a class="button is-small tooltip-trigger">
+                                            <span class="icon is-small">
+                                                <i class="lni-exit"></i>
+                                            </span>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                        <a class="panel-block is-block">
+                            some_user123 <span class="tag is-light perm-tag">Admin</span>
+                        </a>
                     </nav>
                 </div>
             </div>
@@ -240,7 +280,7 @@ export default {
     }
 
     .users{
-        margin-bottom: 20px;
+        margin-top: 20px;
     }
 
     .custom1{
@@ -255,15 +295,39 @@ export default {
         margin-bottom: 0 !important;
     }
 
-    .x-button{
-        color: white;
-        background-color: #dbdbdb;
-        border-radius: 10px;
-        padding: 6px;
+    .perm-tag{
+        margin-left: 5px;
     }
 
-    .x-button:hover{
-        background-color: #333;
-        cursor: pointer;
+    .tooltip .tooltiptext {
+        visibility: hidden;
+        width: 120px;
+        border:1px solid #dbdbdb;
+        background-color: gray;
+        color: #fff;
+        text-align: center;
+        border-radius: 6px;
+        
+        /* Position the tooltip text - see examples below! */
+        position: absolute;
+        z-index: 1;
+        margin-top: 32px;
     }
+
+    .tooltip:hover .tooltiptext{
+        visibility: visible;
+    }
+
+    .tooltip{
+        margin-left: 4px;
+    }
+    
+    .user-buttons{
+        visibility: hidden;
+    }
+
+    .user-block:hover .user-buttons{
+        visibility: visible;
+    }
+
 </style>

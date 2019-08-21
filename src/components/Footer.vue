@@ -17,11 +17,5 @@ export default {
 </script>
 
 <style>
-    .footer{
-        margin-top: 40px;
-        height: auto;
-        position: absolute;
-        bottom: 0;
-        width: 100%;
-    }
+    
 </style>
