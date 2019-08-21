@@ -64,8 +64,47 @@
                             Users
                         </p>
                         <a class="panel-block user-block is-block is-active">
-                            melih <span class="tag is-success perm-tag">You</span>
-                            <span class="tag is-info perm-tag">Owner</span>
+                            <div v-show="editUsername" class="edit-username">
+                                <div class="field is-grouped">
+                                    <div class="control">
+                                        <p class="control is-expanded">
+                                            <input class="input is-small" type="text" placeholder="melih">
+                                        </p>
+                                    </div>
+                                    <div class="field is-grouped">
+                                        <p class="control">
+                                            <a class="button is-small">
+                                            Change
+                                            </a>
+                                        </p>
+                                        <p class="control">
+                                            <a @click="editUsername=false" class="button is-danger is-small">
+                                            Cancel
+                                            </a>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div v-show="!editUsername" class="user-list-item">
+                                melih <span class="tag is-success perm-tag">You</span>
+                                <span class="tag is-info perm-tag">Owner</span>
+                                <div class="user-buttons is-pulled-right visible">
+                                    <div class="buttons">
+                                        <div class="tooltip">
+                                            <span class="tooltiptext">Edit Username</span>
+                                            <a class="button is-small tooltip-trigger">
+                                                <span @click="editUsername=true" class="icon is-small">
+                                                    <i class="lni-pencil"></i>
+                                                </span>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                        <a class="panel-block user-block is-block">
+                            some-user123 
+                            <span class="tag is-warning perm-tag">Admin</span>
                             <div class="user-buttons is-pulled-right">
                                 <div class="buttons">
                                     <div class="tooltip">
@@ -94,10 +133,7 @@
                                     </div>
                                 </div>
                             </div>
-                        </a>
-                        <a class="panel-block is-block">
-                            some_user123 <span class="tag is-light perm-tag">Admin</span>
-                        </a>
+                        </a>   
                     </nav>
                 </div>
             </div>
@@ -132,7 +168,8 @@ export default {
             info: {},
             videoState : null,
             playingVideo : {},
-            debug : null
+            debug : null,
+            editUsername : null
         }
     },
     methods : {
@@ -327,6 +364,10 @@ export default {
     }
 
     .user-block:hover .user-buttons{
+        visibility: visible;
+    }
+
+    .visible{
         visibility: visible;
     }
 
