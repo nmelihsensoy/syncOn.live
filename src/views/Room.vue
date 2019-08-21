@@ -36,7 +36,7 @@
                                     </div>
                                 </div>
                             </a>--->
-                            <a v-for="(video, index) in videoList" v-bind:key="index" v-on:click="addToPlaylist(video)" :class="{'panel-block' : true, 'is-active': playlistUiActive(video)}">
+                            <a v-for="(video, index) in videoList" v-bind:key="index" v-on:click="changeCurrentVideo(video)" :class="{'panel-block' : true, 'is-active': playlistUiActive(video)}">
                                 <div class="media">
                                     <div class="media-left">
                                         <figure class="image is-64x64">
@@ -128,17 +128,23 @@ export default {
                 ],
             };
         },
+        changeCurrentVideo : function (video){
+            if(!this.playlistUiActive(video)){
+                this.addToPlaylist(video);
+            }
+        },
         fetchVideoInfo : function(videoUrl){
             var video_id = getVideoId(videoUrl).id;
             axios
                 .get('https://www.googleapis.com/youtube/v3/videos?id='+ video_id +'&key='+ YOUTUBE_API_KEY +'&part=snippet,contentDetails,statistics,status')
                 .then(response => {
-                    
                     this.videoList.push({url: videoUrl, v_id: video_id, title: response.data.items[0].snippet.title, thumbnail:response.data.items[0].snippet.thumbnails.default.url})
+                    
                     //playlist has a only 1 item load to player
                     if(this.videoList.length === 1){
                         this.addToPlaylist({url: videoUrl})
                     }
+                    
                 })
                 .catch(error => {
                     console.log(error)
@@ -148,7 +154,9 @@ export default {
         },
         //When the url came from navbar get the video infos from youtube api
         urlSended : function(data){
-            this.fetchVideoInfo(data)
+            if(this.isInPlaylist(data) === false){
+                this.fetchVideoInfo(data)
+            }
         },
         //Compares currently loaded player data with the arg.data
         playlistUiActive : function(data){
@@ -167,10 +175,18 @@ export default {
             }else if(this.videoList.length == 1){
                 this.addToPlaylist(this.videoList[0]);
             }else if(this.videoList.length == index){
-                this.clearPlayer();
+                this.addToPlaylist(this.videoList[index-1]);
             }else{
                 this.addToPlaylist(this.videoList[index+1]);
             }
+        },
+        isInPlaylist(video){
+            for(var i=0; i<this.videoList.length; i++){
+                if(video === this.videoList[i].url){
+                    return true;
+                }
+            }
+            return false;
         }
     },
     created (){ 
