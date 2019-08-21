@@ -50,7 +50,7 @@
                                 </div>
                             </a>
                         </div>
-                        <div class="panel-block custom1 buttons">
+                        <div v-show="this.videoList.length != 0" class="panel-block custom1 buttons">
                             <button class="button is-link is-outlined" @click="clearPlaylist">
                             clear playlist
                             </button>
@@ -91,7 +91,8 @@ export default {
             errored: false,
             info: {},
             videoState : null,
-            playingVideo : {}
+            playingVideo : {},
+            debug : null
         }
     },
     methods : {
@@ -132,8 +133,12 @@ export default {
             axios
                 .get('https://www.googleapis.com/youtube/v3/videos?id='+ video_id +'&key='+ YOUTUBE_API_KEY +'&part=snippet,contentDetails,statistics,status')
                 .then(response => {
-                
+                    
                     this.videoList.push({url: videoUrl, v_id: video_id, title: response.data.items[0].snippet.title, thumbnail:response.data.items[0].snippet.thumbnails.default.url})
+                    //playlist has a only 1 item load to player
+                    if(this.videoList.length === 1){
+                        this.addToPlaylist({url: videoUrl})
+                    }
                 })
                 .catch(error => {
                     console.log(error)
@@ -141,12 +146,11 @@ export default {
                 })
                 .finally(() => this.loading = false)
         },
+        //When the url came from navbar get the video infos from youtube api
         urlSended : function(data){
-            if(this.videoList.length === 0){
-                this.addToPlaylist({url: data})
-            }
             this.fetchVideoInfo(data)
         },
+        //Compares currently loaded player data with the arg.data
         playlistUiActive : function(data){
             if(data.url === this.playingVideo.url || data.v_id === this.playingVideo.v_id){
                 return true;
@@ -155,9 +159,8 @@ export default {
             }
         },
         deleteFromPlaylist : function(){
-            var index = this.videoList.indexOf(this.playingVideo);
- 
-            this.videoList.splice(index, 1);
+            var index = this.videoList.indexOf(this.playingVideo); //find playing item index from videoList
+            this.videoList.splice(index, 1); //remove found item from videoList
             
             if(this.videoList.length == 0){
                 this.clearPlayer();
@@ -231,6 +234,7 @@ export default {
     .empty-plist{
         border-left: 1px solid #dbdbdb;
         border-right: 1px solid #dbdbdb;
+        border-bottom: 1px solid #dbdbdb;
         height: 250px;
         margin-bottom: 0 !important;
     }

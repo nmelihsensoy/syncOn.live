@@ -25,7 +25,7 @@
             <div v-if="this.$route.name === 'room'" class="navbar-start queue-input">
                 <div class="field has-addons navbar-item">
                     <div class="control">
-                        <input v-model="video_url" v-on:keyup.enter="sendUrl" class="input" type="text" placeholder="add video to queue">
+                        <input v-model="video_url" v-on:keyup.enter="sendUrl" :class="{'is-danger' : !urlValid}" class="input" type="text" placeholder="add video to queue">
                     </div>
                     <div class="control">
                         <a class="button is-dark" @click="sendUrl">
@@ -63,12 +63,15 @@
 </template>
 
 <script>
+var url = require('url');
+
 export default {
     name : 'NavBar',
     props: ['videoUrl'],
     data : function() {
         return{
-            video_url : ''
+            video_url : null,
+            urlValid : true
         }
     },
     methods : {
@@ -76,8 +79,17 @@ export default {
             return 'is-active';
         },
         sendUrl : function(){
-            this.$emit('urlSended', this.video_url);
-            this.video_url = '';
+            var q = url.parse(this.video_url, true);
+
+            if(q.host != null && ((q.host === 'www.youtube.com') && (q.pathname === '/watch') || (q.host === 'youtube.com') && (q.pathname === '/watch'))){
+                this.urlValid = true;
+                this.$emit('urlSended', this.video_url);
+                this.video_url = null;
+                
+            }else{
+                this.urlValid = false;
+                this.video_url = null;
+            }
         }
     }
 }
