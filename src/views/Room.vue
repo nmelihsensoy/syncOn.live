@@ -24,19 +24,6 @@
                             Empty
                         </div>
                         <div v-show="this.videoList.length != 0" class="panel-main-scroll">
-                            <!---<a class="panel-block is-active">
-                                <div class="media">
-                                    <div class="media-left">
-                                        <figure class="image is-64x64">
-                                        <img src="https://bulma.io/images/placeholders/96x96.png" alt="Placeholder image">
-                                        </figure>
-                                    </div>
-                                    <div class="media-content">
-                                        <p class="title is-5">John Smith</p>
-                                        <p class="subtitle is-6">@johnsmith</p>
-                                    </div>
-                                </div>
-                            </a>--->
                             <a v-for="(video, index) in videoList" v-bind:key="index" v-on:click="changeCurrentVideo(video)" :class="{'panel-block' : true, 'is-active': playlistUiActive(video)}">
                                 <div class="media">
                                     <div class="media-left">
@@ -355,8 +342,7 @@ export default {
         color: #fff;
         text-align: center;
         border-radius: 6px;
-        
-        /* Position the tooltip text - see examples below! */
+
         position: absolute;
         z-index: 1;
         margin-top: 32px;
