@@ -1,6 +1,7 @@
 <template>
 <div class="main">
     <NavBar @urlSended = "urlSended"></NavBar>
+    <Notification v-bind:notify="this.notificationObject"></Notification>
     <div class="room">
         <div class="container">
             <div class="columns">
@@ -145,6 +146,7 @@
 <script>
 import io from "socket.io-client";
 import NavBar from '../components/NavBar';
+import Notification from '../components/Notification';
 
 const getVideoId = require('get-video-id');
 const axios = require('axios');
@@ -154,7 +156,8 @@ const YOUTUBE_API_KEY = 'AIzaSyAC7Fwlehe6_yjOxG1zVYtWhD9gEID0FME';
 export default {
     name: 'room',
     components:{
-        NavBar
+        NavBar,
+        Notification
     },
     data : function() {
         return{
@@ -169,7 +172,11 @@ export default {
             videoState : null,
             playingVideo : {},
             debug : null,
-            editUsername : null
+            editUsername : null,
+            notificationsArr : [
+                {type : 'danger', closeButton : false, bodyMessage : '1 sec message', duration : 1000, htmlTags: false, customClass: 'test'}
+            ],
+            notificationObject : {}
         }
     },
     methods : {
@@ -216,7 +223,7 @@ export default {
                 .get('https://www.googleapis.com/youtube/v3/videos?id='+ video_id +'&key='+ YOUTUBE_API_KEY +'&part=snippet,contentDetails,statistics,status')
                 .then(response => {
                     this.videoList.push({url: videoUrl, v_id: video_id, title: response.data.items[0].snippet.title, thumbnail:response.data.items[0].snippet.thumbnails.default.url})
-                    
+                    this.notificationObject = {type : 'warning', closeButton : true, bodyMessage : response.data.items[0].snippet.title, duration : -1, htmlTags: false, customClass: ''};
                     //playlist has a only 1 item load to player
                     if(this.videoList.length === 1){
                         this.addToPlaylist({url: videoUrl})
@@ -257,13 +264,16 @@ export default {
                 this.addToPlaylist(this.videoList[index+1]);
             }
         },
-        isInPlaylist(video){
+        isInPlaylist : function(video){
             for(var i=0; i<this.videoList.length; i++){
                 if(video === this.videoList[i].url){
                     return true;
                 }
             }
             return false;
+        },
+        pushNotification : function(obj){
+            this.testNotification = obj;
         }
     },
     created (){ 
@@ -369,6 +379,10 @@ export default {
 
     .visible{
         visibility: visible;
+    }
+
+    .test{
+        opacity: 0.5;
     }
 
 </style>
