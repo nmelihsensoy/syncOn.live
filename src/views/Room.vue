@@ -147,11 +147,12 @@
 import io from "socket.io-client";
 import NavBar from '../components/NavBar';
 import Notification from '../components/Notification';
+import ApiKeys from '../../api-keys'
 
 const getVideoId = require('get-video-id');
 const axios = require('axios');
 
-const YOUTUBE_API_KEY = 'AIzaSyAC7Fwlehe6_yjOxG1zVYtWhD9gEID0FME';
+const YOUTUBE_API_KEY = ApiKeys.youtube;
 
 export default {
     name: 'room',
