@@ -80,8 +80,8 @@
                                     <div class="buttons">
                                         <div class="tooltip">
                                             <span class="tooltiptext">Edit Username</span>
-                                            <a class="button is-small tooltip-trigger">
-                                                <span @click="editUsername=true" class="icon is-small">
+                                            <a @click="editUsername = true" class="button is-small tooltip-trigger">
+                                                <span class="icon is-small">
                                                     <i class="lni-pencil"></i>
                                                 </span>
                                             </a>
