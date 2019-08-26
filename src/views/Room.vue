@@ -6,6 +6,10 @@
         <div class="container">
             <div class="columns">
                 <div class="column is-three-fifths">
+                    {{this.socketClientId}}
+                    <br>
+                    <a @click="join_room(roomId)" class="button">Join Room</a>
+                    <a @click="leave_room(roomId)" class="button">Leave Room</a>
                     <vue-plyr ref="plyr">
                         <div class="plyr__video-embed">
                             <iframe
@@ -131,10 +135,12 @@
 </template>
 
 <script>
-import io from "socket.io-client";
+//import io from "socket.io-client";
 import NavBar from '../components/NavBar';
 import Notification from '../components/Notification';
 import ApiKeys from '../../api-keys'
+import UserNames from '../assets/usernames'
+import { isNullOrUndefined } from 'util';
 
 const getVideoId = require('get-video-id');
 const axios = require('axios');
@@ -150,7 +156,9 @@ export default {
     data : function() {
         return{
             roomId : this.$route.params.id,
+            roomCreate : this.$route.params.create,
             socket : {},
+            socketClientId : null,
             videoList : [],
             test : null,
             videoId : '',
@@ -164,7 +172,9 @@ export default {
             notificationsArr : [
                 {type : 'danger', closeButton : false, bodyMessage : '1 sec message', duration : 1000, htmlTags: false, customClass: 'test'}
             ],
-            notificationObject : {}
+            notificationObject : {},
+            roomExist : null,
+            random_name : UserNames.getRandomName()
         }
     },
     methods : {
@@ -241,7 +251,6 @@ export default {
         deleteFromPlaylist : function(){
             var index = this.videoList.indexOf(this.playingVideo); //find playing item index from videoList
             this.videoList.splice(index, 1); //remove found item from videoList
-            
             if(this.videoList.length == 0){
                 this.clearPlayer();
             }else if(this.videoList.length == 1){
@@ -262,14 +271,45 @@ export default {
         },
         pushNotification : function(obj){
             this.testNotification = obj;
+        },
+        join_room : function(room){
+            this.socket.emit('join room', room);
+        },
+        leave_room : function(room){
+            this.socket.emit('leave room', room);
+        },
+        room_emit : function(room, msg){
+            this.socket.to(room).emit(msg);
+        },
+        isRoomExist : function(){
+            this.socket.emit('create room', this.roomId, function(data){
+                console.log(data);
+                return data;
+            });
         }
     },
     created (){ 
-        this.socket = io("http://192.168.0.31:3000")
+        this.socket = {};
+        this.socket = io.connect("http://192.168.0.28:3300", {
+            reconnection : false
+        });
+        var data = this.isRoomExist();
+        if(this.roomCreate === true || data != isNullOrUndefined){
+            this.join_room(this.roomId);
+        }else{
+            this.$router.push({name : 'home'});
+        }
     },
     mounted(){
+        this.socket.on('connect', () => {
+            this.socketClientId = this.socket.id;
+        });
+
         this.socket.on('test', data => {
             console.log(data)
+        });
+        this.socket.on('user joined', function(){
+            console.log('user joined to the room');
         });
         //this.player.on('statechange', event => {
         //    //console.log(event.detail);

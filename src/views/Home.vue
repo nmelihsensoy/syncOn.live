@@ -17,9 +17,9 @@
             <div class="container" v-show="!join">
                 <div class="columns is-centered" >
                     <div class="column is-one-quarter">
-                        <router-link :to="{ name: 'room', params: { id: roomId }}" ><a class="box has-text-centered">
+                        <a @click="createRoom" class="box has-text-centered">
                             Create Room
-                        </a></router-link>
+                        </a>
                     </div>
                     <div class="column is-one-quarter">
                         <a class="box has-text-centered" @click="join_room">
@@ -42,21 +42,21 @@
                                 <div class="field">
                                 <label class="label">Room Code</label>
                                 <div class="control">
-                                    <input class="input" type="text" placeholder="">
+                                    <input v-model="roomId" class="input" type="text" placeholder="">
                                 </div>
                             </div>
                             <div class="field is-grouped is-grouped-right">
                                 <p class="control">
-                                    <router-link :to="{ name: 'room', params: { id: roomId }}"><a class="button is-primary">
+                                    <a @click="this.joinRoom" class="button is-primary">
                                     Join
-                                    </a></router-link>
+                                    </a>
                                 </p>
                                 <p class="control">
                                     <a class="button is-light" @click="join = false">
                                     Cancel
                                     </a>
                                 </p>
-                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -76,12 +76,28 @@ export default {
     data : function() {
         return{
             join : false,
-            roomId : 31
+            roomId : null,
+            guid : null
         }
     },
     methods : {
         join_room : function(){
             this.join = true
+        },
+        S4 : function(){
+            return (((1+Math.random())*0x10000)|0).toString(16).substring(1); 
+        },
+        guidCalc : function(){
+            //from : http://guid.us/GUID/JavaScript
+            this.guid = (this.S4() + this.S4() + "-" + this.S4() + "-4" + this.S4().substr(0,3) + "-" + 
+                            this.S4() + "-" + this.S4() + this.S4() + this.S4()).toLowerCase();
+        },
+        createRoom : function(){
+            this.guidCalc();
+            this.$router.push({ name: 'room', params: { id : this.guid, create: true}});
+        },
+        joinRoom : function(){
+            this.$router.push({ name: 'room', params: { id: this.roomId, create: false}});
         }
     }
 }
