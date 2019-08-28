@@ -55,77 +55,15 @@
                         <p class="panel-heading">
                             Users
                         </p>
-                        <a class="panel-block user-block is-block is-active">
-                            <div v-show="editUsername" class="edit-username">
-                                <div class="field is-grouped">
-                                    <div class="control">
-                                        <p class="control is-expanded">
-                                            <input class="input is-small" type="text" placeholder="melih">
-                                        </p>
-                                    </div>
-                                    <div class="field is-grouped">
-                                        <p class="control">
-                                            <a class="button is-small">
-                                            Change
-                                            </a>
-                                        </p>
-                                        <p class="control">
-                                            <a @click="editUsername=false" class="button is-danger is-small">
-                                            Cancel
-                                            </a>
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div v-show="!editUsername" class="user-list-item">
-                                melih <span class="tag is-success perm-tag">You</span>
-                                <span class="tag is-info perm-tag">Owner</span>
-                                <div class="user-buttons is-pulled-right visible">
-                                    <div class="buttons">
-                                        <div class="tooltip">
-                                            <span class="tooltiptext">Edit Username</span>
-                                            <a @click="editUsername = true" class="button is-small tooltip-trigger">
-                                                <span class="icon is-small">
-                                                    <i class="lni-pencil"></i>
-                                                </span>
-                                            </a>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </a>
-                        <a class="panel-block user-block is-block">
-                            some-user123 
-                            <span class="tag is-warning perm-tag">Admin</span>
-                            <div class="user-buttons is-pulled-right">
-                                <div class="buttons">
-                                    <div class="tooltip">
-                                        <span class="tooltiptext">Make Admin</span>
-                                        <a class="button is-small tooltip-trigger">
-                                            <span class="icon is-small">
-                                                <i class="lni-key"></i>
-                                            </span>
-                                        </a>
-                                    </div>
-                                    <div class="tooltip">
-                                        <span class="tooltiptext">Edit Username</span>
-                                        <a class="button is-small tooltip-trigger">
-                                            <span class="icon is-small">
-                                                <i class="lni-pencil"></i>
-                                            </span>
-                                        </a>
-                                    </div>
-                                    <div class="tooltip">
-                                        <span class="tooltiptext">Kick</span>
-                                        <a class="button is-small tooltip-trigger">
-                                            <span class="icon is-small">
-                                                <i class="lni-exit"></i>
-                                            </span>
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-                        </a>   
+                        <UserListItem v-for="(user, index) in userList" v-bind:key="index"
+                            v-bind:list = "user" 
+                            v-bind:isActive = "user.userId === socketClientId"
+                            @changeNick = "changeNick"
+                            v-bind:userPermLevel="userList[socketClientId].permission_level"
+                            @makeAdmin = "makeAdmin"
+                            @kickUser = "kickUser"
+                        >
+                        </UserListItem>
                     </nav>
                 </div>
             </div>
@@ -138,9 +76,9 @@
 //import io from "socket.io-client";
 import NavBar from '../components/NavBar';
 import Notification from '../components/Notification';
-import ApiKeys from '../../api-keys'
-import UserNames from '../assets/usernames'
-import { isNullOrUndefined } from 'util';
+import UserListItem from '../components/UserListItem';
+import ApiKeys from '../../api-keys';
+import UserNames from '../assets/usernames';
 
 const getVideoId = require('get-video-id');
 const axios = require('axios');
@@ -151,7 +89,8 @@ export default {
     name: 'room',
     components:{
         NavBar,
-        Notification
+        Notification,
+        UserListItem
     },
     data : function() {
         return{
@@ -174,7 +113,9 @@ export default {
             ],
             notificationObject : {},
             roomExist : null,
-            random_name : UserNames.getRandomName()
+            nickName : UserNames.getRandomName(),
+            currentRoom : null,
+            userList : []
         }
     },
     methods : {
@@ -273,19 +214,25 @@ export default {
             this.testNotification = obj;
         },
         join_room : function(room){
-            this.socket.emit('join room', room);
+            this.socket.emit('join room', {roomId: room}, {nickName : this.nickName});
+        },
+        create_room : function(room){
+            this.socket.emit('create room', {roomId: room}, {nickName : this.nickName});
         },
         leave_room : function(room){
-            this.socket.emit('leave room', room);
+            this.socket.emit('leave room', {roomId: room});
         },
         room_emit : function(room, msg){
             this.socket.to(room).emit(msg);
         },
-        isRoomExist : function(){
-            this.socket.emit('create room', this.roomId, function(data){
-                console.log(data);
-                return data;
-            });
+        changeNick : function(nnick){
+            this.socket.emit('change nickname', this.roomId, nnick);
+        },
+        makeAdmin : function(u_id){
+            this.socket.emit('give admin perm', this.roomId, u_id);
+        },
+        kickUser : function(u_id){
+            this.socket.emit('kick user', u_id);
         }
     },
     created (){ 
@@ -293,11 +240,11 @@ export default {
         this.socket = io.connect("http://192.168.0.28:3300", {
             reconnection : false
         });
-        var data = this.isRoomExist();
-        if(this.roomCreate === true || data != isNullOrUndefined){
-            this.join_room(this.roomId);
+        //var data = this.isRoomExist();
+        if(this.roomCreate === true){
+            this.create_room(this.roomId);
         }else{
-            this.$router.push({name : 'home'});
+            this.join_room(this.roomId);
         }
     },
     mounted(){
@@ -305,12 +252,11 @@ export default {
             this.socketClientId = this.socket.id;
         });
 
-        this.socket.on('test', data => {
-            console.log(data)
+        this.socket.on('users update', data => {
+            console.log(data.users);
+            this.userList = data.users;
         });
-        this.socket.on('user joined', function(){
-            console.log('user joined to the room');
-        });
+
         //this.player.on('statechange', event => {
         //    //console.log(event.detail);
         //});
@@ -368,44 +314,6 @@ export default {
         border-bottom: 1px solid #dbdbdb;
         height: 250px;
         margin-bottom: 0 !important;
-    }
-
-    .perm-tag{
-        margin-left: 5px;
-    }
-
-    .tooltip .tooltiptext {
-        visibility: hidden;
-        width: 120px;
-        border:1px solid #dbdbdb;
-        background-color: gray;
-        color: #fff;
-        text-align: center;
-        border-radius: 6px;
-
-        position: absolute;
-        z-index: 1;
-        margin-top: 32px;
-    }
-
-    .tooltip:hover .tooltiptext{
-        visibility: visible;
-    }
-
-    .tooltip{
-        margin-left: 4px;
-    }
-    
-    .user-buttons{
-        visibility: hidden;
-    }
-
-    .user-block:hover .user-buttons{
-        visibility: visible;
-    }
-
-    .visible{
-        visibility: visible;
     }
 
     .test{
