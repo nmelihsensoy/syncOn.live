@@ -26,7 +26,7 @@
             
             <span v-if="list.permission_level === 0" class="tag is-info perm-tag">Owner</span>
             <span v-else-if="list.permission_level === 1" class="tag is-warning perm-tag">Admin</span>
-            <div v-if="!this.isActive || list.permission_level != 0" class="user-buttons is-pulled-right">
+            <div class="user-buttons is-pulled-right">
                 <div class="buttons">
                     <div v-if="this.isActive" class="tooltip">
                         <span class="tooltiptext">Edit Username</span>
@@ -36,7 +36,7 @@
                             </span>
                         </a>
                     </div>
-                    <div v-if="this.userPermLevel === 0" class="tooltip">
+                    <div v-if="this.userPermLevel === 0 && !this.isActive && list.permission_level != 0" class="tooltip">
                         <span v-if="list.permission_level === 2" class="tooltiptext">Make Admin</span>
                         <span v-else-if="list.permission_level === 1" class="tooltiptext">Take Admin</span>
                         <a @click="makeAdmin(list.userId)" class="button is-small tooltip-trigger">
@@ -45,7 +45,7 @@
                             </span>
                         </a>
                     </div>
-                    <div v-if="this.userPermLevel <= 1 && list.permission_level != 0" class="tooltip">
+                    <div v-if="this.userPermLevel <= 1 && !this.isActive && list.permission_level != 0" class="tooltip">
                         <span class="tooltiptext">Kick</span>
                         <a @click="kickUser(list.userId)" class="button is-small tooltip-trigger">
                             <span class="icon is-small">

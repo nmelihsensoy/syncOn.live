@@ -6,10 +6,6 @@
         <div class="container">
             <div class="columns">
                 <div class="column is-three-fifths">
-                    {{this.socketClientId}}
-                    <br>
-                    <a @click="join_room(roomId)" class="button">Join Room</a>
-                    <a @click="leave_room(roomId)" class="button">Leave Room</a>
                     <vue-plyr ref="plyr">
                         <div class="plyr__video-embed">
                             <iframe
@@ -92,36 +88,28 @@ export default {
         Notification,
         UserListItem
     },
-    data : function() {
+    data : function(){
         return{
             roomId : this.$route.params.id,
             roomCreate : this.$route.params.create,
             socket : {},
             socketClientId : null,
             videoList : [],
-            test : null,
-            videoId : '',
             loading: true,
             errored: false,
-            info: {},
             videoState : null,
-            playingVideo : {},
-            debug : null,
-            editUsername : null,
-            notificationsArr : [
-                {type : 'danger', closeButton : false, bodyMessage : '1 sec message', duration : 1000, htmlTags: false, customClass: 'test'}
-            ],
+            playingVideo : {url: null},
             notificationObject : {},
-            roomExist : null,
             nickName : UserNames.getRandomName(),
-            currentRoom : null,
             userList : []
         }
     },
     methods : {
         clearPlaylist : function(){
             this.videoList = [];
+            this.playingVideo = {url: null};
             this.clearPlayer();
+            this.updatePlaylist();
         },
         alert_test : (a) => {
             alert(a)
@@ -155,6 +143,7 @@ export default {
             if(!this.playlistUiActive(video)){
                 this.addToPlaylist(video);
             }
+            this.updatePlaylist();
         },
         fetchVideoInfo : function(videoUrl){
             var video_id = getVideoId(videoUrl).id;
@@ -167,7 +156,7 @@ export default {
                     if(this.videoList.length === 1){
                         this.addToPlaylist({url: videoUrl})
                     }
-                    
+                    this.updatePlaylist();
                 })
                 .catch(error => {
                     console.log(error)
@@ -194,6 +183,7 @@ export default {
             this.videoList.splice(index, 1); //remove found item from videoList
             if(this.videoList.length == 0){
                 this.clearPlayer();
+                this.playingVideo = {url: null};
             }else if(this.videoList.length == 1){
                 this.addToPlaylist(this.videoList[0]);
             }else if(this.videoList.length == index){
@@ -201,6 +191,7 @@ export default {
             }else{
                 this.addToPlaylist(this.videoList[index+1]);
             }
+            this.updatePlaylist();
         },
         isInPlaylist : function(video){
             for(var i=0; i<this.videoList.length; i++){
@@ -222,8 +213,8 @@ export default {
         leave_room : function(room){
             this.socket.emit('leave room', {roomId: room});
         },
-        room_emit : function(room, msg){
-            this.socket.to(room).emit(msg);
+        room_emit : function(room, topic, msg){
+            this.socket.to(room).emit(topic, msg);
         },
         changeNick : function(nnick){
             this.socket.emit('change nickname', this.roomId, nnick);
@@ -233,6 +224,9 @@ export default {
         },
         kickUser : function(u_id){
             this.socket.emit('kick user', u_id);
+        },
+        updatePlaylist : function(){
+            this.socket.emit('playlist update', this.roomId, {playing: this.playingVideo, playlist: this.videoList});
         }
     },
     created (){ 
@@ -252,9 +246,26 @@ export default {
             this.socketClientId = this.socket.id;
         });
 
+        this.socket.on('disconnect', (reason) => {
+            this.$router.push({name: 'home'});
+            alert('You are Kicked! ' + reason);
+        });
+
         this.socket.on('users update', data => {
-            console.log(data.users);
+            //console.log(data);
             this.userList = data.users;
+        });
+
+        this.socket.on('playlist update', data =>{
+            console.log(data);
+            this.videoList = data.playlist;
+
+            if((data.playing.url != this.playingVideo.url) && data.playing.url != null){
+                this.addToPlaylist(data.playing);
+            }else if((data.playing.url != this.playingVideo.url) && data.playing.url === null){ 
+                this.clearPlayer();
+            }
+            this.playingVideo = data.playing;
         });
 
         //this.player.on('statechange', event => {
@@ -264,7 +275,11 @@ export default {
             console.log(event);
         });
         this.player.once('ready', event =>{ //player init
-            this.clearPlayer();
+            if(this.playingVideo.url === null){
+                this.clearPlayer();
+            }else{
+                this.addToPlaylist(this.playingVideo);
+            }
         });
 
         this.player.on('progress', event =>{

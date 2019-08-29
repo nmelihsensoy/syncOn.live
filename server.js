@@ -7,6 +7,12 @@ io.on('connection', function (socket){
     console.log(socket.id + ' connected.');
     //io.emit('this', { will: 'be received by everyone'});
 
+    socket.on('playlist update', function(room, playlist){
+        console.log(playlist);
+        rooms[room].videos = playlist;
+        socket.to(room).emit('playlist update', playlist);
+    });
+
     socket.on('private message', function (from, msg) {
     console.log('I received a private message by ', from, ' saying ', msg);
     });
@@ -25,10 +31,13 @@ io.on('connection', function (socket){
         console.log(rooms[room].users[user]);
     });
 
+    /* USER OPERATIONS */
+
     //{userId: , roomId, nickName, permission_level, }
     //0:Host, 1:Admin, 2:User
     socket.on('create room', function(room, host){
         room.users = {};
+        room.videos = {};
         socket.join(room.roomId);
         host.userId = socket.id;
         host.roomId = room.roomId;
@@ -58,6 +67,9 @@ io.on('connection', function (socket){
         }
 
         io.sockets.to(room.roomId).emit('users update', rooms[room.roomId]);
+        //io.sockets.to(room.roomId).emit('playlist update', rooms[room.roomId].videos);
+        //socket.to(room.roomId).emit('playlist update', rooms[room.roomId].videos);
+        io.to(socket.id).emit('playlist update', rooms[room.roomId].videos);
     });
 
     socket.on('change host', function(room, user){
@@ -87,7 +99,7 @@ io.on('connection', function (socket){
 
     socket.on('give admin perm', function(room, user){
         if(rooms[room].users[socket.id].permission_level === 0){
-            if(rooms[room].users[user].permission_level == 2){
+            if(rooms[room].users[user].permission_level === 2){
                 rooms[room].users[user].permission_level = 1;
             }else{
                 rooms[room].users[user].permission_level = 2;
@@ -111,6 +123,8 @@ io.on('connection', function (socket){
           });
           io.sockets.to(clRoom).emit('users update', rooms[clRoom]);
     });
+
+    /* USER OPERATIONS */
 });
 
 server.listen(3300)
