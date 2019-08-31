@@ -6,14 +6,18 @@
         <div class="container">
             <div class="columns">
                 <div class="column is-three-fifths">
-                    <vue-plyr ref="plyr">
-                        <div class="plyr__video-embed">
-                            <iframe
-                            src="https://www.youtube.com/embed/?iv_load_policy=3&modestbranding=1&playsinline=1&showinfo=0&rel=0&enablejsapi=1"
-                            allowfullscreen allowtransparency >
-                            </iframe>
+                    <div @mouseover="playerControlsToggle(true)" @mouseleave="playerControlsToggle(false)" @dblclick="playerToggleFS">
+                        <div :class="{'main-video' : userPerm !== 0}">
+                            <vue-plyr :options="options_last" ref="plyr">
+                            <div class="plyr__video-embed">
+                                <iframe
+                                src="https://www.youtube.com/embed/?iv_load_policy=3&modestbranding=1&playsinline=1&showinfo=0&rel=0&enablejsapi=1&disablekb=1"
+                                allowfullscreen allowtransparency >
+                                </iframe>
+                            </div>
+                            </vue-plyr>
                         </div>
-                    </vue-plyr>
+                    </div>
                 </div>
                 <div class="column">
                     <nav class="panel">
@@ -38,7 +42,7 @@
                                 </div>
                             </a>
                         </div>
-                        <div v-show="this.videoList.length != 0" class="panel-block custom1 buttons">
+                        <div v-show="this.videoList.length != 0 && this.userPerm <= 1" class="panel-block custom1 buttons">
                             <button class="button is-link is-outlined" @click="clearPlaylist">
                             clear playlist
                             </button>
@@ -101,15 +105,22 @@ export default {
             playingVideo : {url: null},
             notificationObject : {},
             nickName : UserNames.getRandomName(),
-            userList : []
+            userList : [],
+            isDisabled : true,
+            options_last : {
+                invertTime : false
+            },
+            userPerm : 2
         }
     },
     methods : {
         clearPlaylist : function(){
-            this.videoList = [];
-            this.playingVideo = {url: null};
-            this.clearPlayer();
-            this.updatePlaylist();
+            if(this.userPerm <= 1){
+                this.videoList = [];
+                this.playingVideo = {url: null};
+                this.clearPlayer();
+                this.updatePlaylist();
+            }
         },
         alert_test : (a) => {
             alert(a)
@@ -140,10 +151,12 @@ export default {
             };
         },
         changeCurrentVideo : function (video){
-            if(!this.playlistUiActive(video)){
-                this.addToPlaylist(video);
+            if(this.userPerm <= 1){
+                if(!this.playlistUiActive(video)){
+                    this.addToPlaylist(video);
+                }
+                this.updatePlaylist();
             }
-            this.updatePlaylist();
         },
         fetchVideoInfo : function(videoUrl){
             var video_id = getVideoId(videoUrl).id;
@@ -166,7 +179,7 @@ export default {
         },
         //When the url came from navbar get the video infos from youtube api
         urlSended : function(data){
-            if(this.isInPlaylist(data) === false){
+            if(this.userPerm <= 1 && this.isInPlaylist(data) === false){
                 this.fetchVideoInfo(data)
             }
         },
@@ -179,19 +192,21 @@ export default {
             }
         },
         deleteFromPlaylist : function(){
-            var index = this.videoList.indexOf(this.playingVideo); //find playing item index from videoList
-            this.videoList.splice(index, 1); //remove found item from videoList
-            if(this.videoList.length == 0){
-                this.clearPlayer();
-                this.playingVideo = {url: null};
-            }else if(this.videoList.length == 1){
-                this.addToPlaylist(this.videoList[0]);
-            }else if(this.videoList.length == index){
-                this.addToPlaylist(this.videoList[index-1]);
-            }else{
-                this.addToPlaylist(this.videoList[index+1]);
+            if(this.userPerm <= 1){
+                var index = this.videoList.indexOf(this.playingVideo); //find playing item index from videoList
+                this.videoList.splice(index, 1); //remove found item from videoList
+                if(this.videoList.length == 0){
+                    this.clearPlayer();
+                    this.playingVideo = {url: null};
+                }else if(this.videoList.length == 1){
+                    this.addToPlaylist(this.videoList[0]);
+                }else if(this.videoList.length == index){
+                    this.addToPlaylist(this.videoList[index-1]);
+                }else{
+                    this.addToPlaylist(this.videoList[index+1]);
+                }
+                this.updatePlaylist();
             }
-            this.updatePlaylist();
         },
         isInPlaylist : function(video){
             for(var i=0; i<this.videoList.length; i++){
@@ -226,7 +241,22 @@ export default {
             this.socket.emit('kick user', u_id);
         },
         updatePlaylist : function(){
-            this.socket.emit('playlist update', this.roomId, {playing: this.playingVideo, playlist: this.videoList});
+            if(this.userPerm <= 1){
+                this.socket.emit('playlist update', this.roomId, {playing: this.playingVideo, playlist: this.videoList});
+            }
+        },
+        playerControlsToggle : function(t){
+            if(!this.player.fullscreen.active && this.player.playing){
+                //console.log('YAZ');
+                this.player.toggleControls(t);
+            }
+            
+        },
+        playerToggleFS : function(){
+            this.player.fullscreen.toggle();
+        },
+        sendVideoEvent : function(ev){
+            this.socket.emit('video update', this.roomId, this.socketClientId, { time: ev.timeStamp, type: ev.type, plyr : ev.detail.plyr.timers, currentTime : ev.detail.plyr.currentTime, buffered: ev.detail.plyr.buffered});
         }
     },
     created (){ 
@@ -236,6 +266,7 @@ export default {
         });
         //var data = this.isRoomExist();
         if(this.roomCreate === true){
+            this.userPerm = 0;
             this.create_room(this.roomId);
         }else{
             this.join_room(this.roomId);
@@ -244,6 +275,10 @@ export default {
     mounted(){
         this.socket.on('connect', () => {
             this.socketClientId = this.socket.id;
+            this.socket.emit('latency', Date.now(), function(startTime) {
+                var latency = Date.now() - startTime;
+                console.log(latency);
+            });
         });
 
         this.socket.on('disconnect', (reason) => {
@@ -253,11 +288,12 @@ export default {
 
         this.socket.on('users update', data => {
             //console.log(data);
+            this.userPerm = data.users[this.socketClientId].permission_level;
             this.userList = data.users;
         });
 
         this.socket.on('playlist update', data =>{
-            console.log(data);
+            //console.log(data);
             this.videoList = data.playlist;
 
             if((data.playing.url != this.playingVideo.url) && data.playing.url != null){
@@ -268,12 +304,6 @@ export default {
             this.playingVideo = data.playing;
         });
 
-        //this.player.on('statechange', event => {
-        //    //console.log(event.detail);
-        //});
-        this.player.on('pause', event => {
-            console.log(event);
-        });
         this.player.once('ready', event =>{ //player init
             if(this.playingVideo.url === null){
                 this.clearPlayer();
@@ -282,18 +312,39 @@ export default {
             }
         });
 
-        this.player.on('progress', event =>{
-            this.videoState = event
+        this.socket.on('video update', data =>{
+            console.log(data);
+            if(data.type === 'play'){
+                this.player.play();
+            }else if(data.type === 'pause'){
+                this.player.pause();
+                this.player.currentTime = data.currentTime;
+            }else{
+                this.player.currentTime = data.currentTime;
+            }
         });
 
-        this.player.on('pause', event => {
-            this.videoState = 'Paused'
-        });
+        if(this.userPerm === 0){
+            this.player.on('play', event =>{
+                console.log(event);
+                this.sendVideoEvent(event);
+            });
 
-        this.player.on('seeked', event => {
-            this.videoState = 'Seeked'
-        });
+            this.player.on('pause', event =>{
+                console.log(event);
+                this.sendVideoEvent(event);
+            });
 
+            this.player.on('seeked', event =>{
+                this.sendVideoEvent(event);
+            });
+
+            this.player.on('seeking', event =>{
+                if(this.player.paused){
+                    this.sendVideoEvent(event);
+                }
+            });
+        }
     },
     computed: {
         player () { return this.$refs.plyr.player }
@@ -331,8 +382,29 @@ export default {
         margin-bottom: 0 !important;
     }
 
-    .test{
-        opacity: 0.5;
+    .main-video{
+        pointer-events: none !important;
+    }
+
+    .main-video .plyr__menu button{
+        pointer-events: none !important;
+    }
+
+    .main-video [data-plyr=volume]{
+        pointer-events: auto;
+    }
+
+    .main-video [data-plyr=fullscreen]{
+        pointer-events: auto;
+    }
+
+    .main-video [data-plyr=mute]{
+        pointer-events: auto;
+    }
+
+    iframe{
+        pointer-events: none;
+        position: absolute;
     }
 
 </style>

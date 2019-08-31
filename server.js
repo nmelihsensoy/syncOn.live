@@ -8,13 +8,14 @@ io.on('connection', function (socket){
     //io.emit('this', { will: 'be received by everyone'});
 
     socket.on('playlist update', function(room, playlist){
-        console.log(playlist);
+        //console.log(playlist);
         rooms[room].videos = playlist;
         socket.to(room).emit('playlist update', playlist);
     });
 
-    socket.on('private message', function (from, msg) {
-    console.log('I received a private message by ', from, ' saying ', msg);
+    socket.on('video update', function(room, user, video){
+        console.log(video);
+        socket.to(room).emit('video update', video);
     });
 
     socket.on('list room', function (room, fn){
@@ -30,6 +31,10 @@ io.on('connection', function (socket){
         //console.log(io.sockets.adapter.rooms[room.roomId]);
         console.log(rooms[room].users[user]);
     });
+
+    socket.on('latency', function (startTime, cb) {
+        cb(startTime);
+    }); 
 
     /* USER OPERATIONS */
 

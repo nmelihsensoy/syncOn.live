@@ -1,6 +1,8 @@
 <template>
   <div id="app">
-      <router-view/>
+      <div id="wrapper">
+        <router-view/>
+      </div>
     <Footer></Footer>   
   </div>
 </template>
@@ -31,11 +33,15 @@ export default {
 
 <style>
 
-html, body {
+html, body, #app{
   height: 100%;
   display: flex;
   min-height: 100vh;
   flex-direction: column;
+}
+
+#wrapper{
+  flex: 1;
 }
 
 </style>
