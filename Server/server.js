@@ -18,9 +18,9 @@ io.on('connection', function (socket){
         socket.to(room).emit('video update', video);
     });
 
-    socket.on('list room', function (room, fn){
-        fn(io.sockets.adapter.rooms[room]);
-    });
+    //socket.on('list room', function (room, fn){
+    //    fn(io.sockets.adapter.rooms[room]);
+    //});
 
     socket.on('debug room', function(){
         //console.log(io.sockets.adapter.rooms[room.roomId]);
@@ -72,8 +72,6 @@ io.on('connection', function (socket){
         }
 
         io.sockets.to(room.roomId).emit('users update', rooms[room.roomId]);
-        //io.sockets.to(room.roomId).emit('playlist update', rooms[room.roomId].videos);
-        //socket.to(room.roomId).emit('playlist update', rooms[room.roomId].videos);
         io.to(socket.id).emit('playlist update', rooms[room.roomId].videos);
     });
 
@@ -119,14 +117,7 @@ io.on('connection', function (socket){
 
     socket.on('disconnect', function(){
         console.log(socket.id + ' disconnected');
-        var clRoom;
-        Object.keys(rooms).forEach(function(key){
-            if(rooms[key].users[socket.id]){
-                clRoom = key;
-                delete rooms[key].users[socket.id];
-            }  
-          });
-          io.sockets.to(clRoom).emit('users update', rooms[clRoom]);
+        console.log(io.sockets.adapter);
     });
 
     /* USER OPERATIONS */

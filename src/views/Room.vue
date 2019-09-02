@@ -1,6 +1,23 @@
 <template>
 <div class="main">
-    <NavBar @urlSended = "urlSended"></NavBar>
+    <Modal :active="isModalActive">
+        <template>
+            <div class="modal-card">
+            <header class="modal-card-head">
+            <p class="modal-card-title">Modal title</p>
+            <button @click="isModalActive = false" class="delete" aria-label="close"></button>
+            </header>
+            <section class="modal-card-body">
+            <!-- Content ... -->
+            </section>
+            <footer class="modal-card-foot">
+            <button class="button is-success">Save changes</button>
+            <button @click="isModalActive = false" class="button">Cancel</button>
+            </footer>
+        </div>
+        </template>
+    </Modal>
+    <NavBar @urlSended = "urlSended" :userPermLevel="userPerm"></NavBar>
     <Notification v-bind:notify="this.notificationObject"></Notification>
     <div class="room">
         <div class="container">
@@ -73,10 +90,11 @@
 </template>
 
 <script>
-//import io from "socket.io-client";
+import io from "socket.io-client";
 import NavBar from '../components/NavBar';
 import Notification from '../components/Notification';
 import UserListItem from '../components/UserListItem';
+import Modal from '../components/Modal';
 import ApiKeys from '../../api-keys';
 import UserNames from '../assets/usernames';
 
@@ -90,7 +108,8 @@ export default {
     components:{
         NavBar,
         Notification,
-        UserListItem
+        UserListItem,
+        Modal
     },
     data : function(){
         return{
@@ -110,7 +129,8 @@ export default {
             options_last : {
                 invertTime : false
             },
-            userPerm : 2
+            userPerm : 2,
+            isModalActive : false
         }
     },
     methods : {
@@ -121,9 +141,6 @@ export default {
                 this.clearPlayer();
                 this.updatePlaylist();
             }
-        },
-        alert_test : (a) => {
-            alert(a)
         },
         clearPlayer : function(){
             this.player.source = {
@@ -164,7 +181,7 @@ export default {
                 .get('https://www.googleapis.com/youtube/v3/videos?id='+ video_id +'&key='+ YOUTUBE_API_KEY +'&part=snippet,contentDetails,statistics,status')
                 .then(response => {
                     this.videoList.push({url: videoUrl, v_id: video_id, title: response.data.items[0].snippet.title, thumbnail:response.data.items[0].snippet.thumbnails.default.url})
-                    this.notificationObject = {type : 'warning', closeButton : true, bodyMessage : response.data.items[0].snippet.title, duration : -1, htmlTags: false, customClass: ''};
+                    //this.notificationObject = {type : 'warning', closeButton : true, bodyMessage : response.data.items[0].snippet.title, duration : -1, htmlTags: false, customClass: ''};
                     //playlist has a only 1 item load to player
                     if(this.videoList.length === 1){
                         this.addToPlaylist({url: videoUrl})
@@ -261,7 +278,7 @@ export default {
     },
     created (){ 
         this.socket = {};
-        this.socket = io.connect("http://192.168.0.28:3300", {
+        this.socket = io.connect("http://localhost:3300", {
             reconnection : false
         });
         //var data = this.isRoomExist();
@@ -288,9 +305,13 @@ export default {
 
         this.socket.on('users update', data => {
             //console.log(data);
-            this.userPerm = data.users[this.socketClientId].permission_level;
+            if(this.userPerm !==0){
+                this.userPerm = data.users[this.socketClientId].permission_level; 
+            }
             this.userList = data.users;
         });
+
+        //this.socket.on('error')
 
         this.socket.on('playlist update', data =>{
             //console.log(data);
@@ -304,7 +325,7 @@ export default {
             this.playingVideo = data.playing;
         });
 
-        this.player.once('ready', event =>{ //player init
+        this.player.once('ready', () =>{ //player init
             if(this.playingVideo.url === null){
                 this.clearPlayer();
             }else{

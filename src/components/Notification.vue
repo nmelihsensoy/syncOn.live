@@ -32,7 +32,7 @@ export default {
         }
     },
     watch : {
-        notify : function(val, oldVal){
+        notify : function(val){
             this.push(val)
         }
     }

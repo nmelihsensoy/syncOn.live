@@ -22,7 +22,7 @@
                 About
             </router-link>
             </div>
-            <div v-if="this.$route.name === 'room'" class="navbar-start queue-input">
+            <div v-if="this.$route.name === 'room'" v-show="this.userPermLevel <= 1" class="navbar-start queue-input">
                 <div class="field has-addons navbar-item">
                     <div class="control">
                         <input v-model="video_url" v-on:keyup.enter="sendUrl" :class="{'is-danger' : !urlValid}" class="input" type="text" placeholder="add video to queue">
@@ -37,11 +37,11 @@
             <div v-if="this.$route.name !== 'room'" class="navbar-end">
                 <div class="navbar-item">
                     <div class="buttons">
-                    <a class="button is-primary">
+                    <a @click="sendMenu('create')" class="button is-primary">
                         <strong>Create Room</strong>
                     </a>
-                    <a class="button is-link">
-                        <strong>Join Room</strong>
+                    <a @click="sendMenu('join')" class="button is-link">
+                        <strong >Join Room</strong>
                     </a>
                     </div>
                 </div>
@@ -52,8 +52,9 @@
                     <a class="button is-info">
                         <strong>Invite Friend</strong>
                     </a>
-                    <a class="button is-danger">
-                        <strong>Close Room</strong>
+                    <a @click="sendMenu('exit')" class="button is-danger">
+                        <strong v-show="this.userPermLevel === 0">Close Room</strong>
+                        <strong v-show="this.userPermLevel !== 0">Exit Room</strong>
                     </a>
                     </div>
                 </div>
@@ -67,12 +68,12 @@ var url = require('url');
 
 export default {
     name : 'NavBar',
-    props: ['videoUrl'],
+    props: ['videoUrl', 'userPermLevel'],
     data : function() {
         return{
             video_url : null,
             urlValid : true,
-            dropdown : false
+            copied : false
         }
     },
     methods : {
@@ -91,10 +92,12 @@ export default {
                 this.urlValid = false;
                 this.video_url = null;
             }
+        },
+        sendMenu : function(opt){
+            this.$emit('menuSended', opt);
         }
     }
 }
-//<router-link to="/">
 </script>
 
 <style>

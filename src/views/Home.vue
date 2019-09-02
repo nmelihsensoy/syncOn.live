@@ -1,6 +1,32 @@
 <template>
     <div class="main">
-        <NavBar></NavBar>
+        <Modal :active="isModalActive" @close="isModalActive = false" >
+            <template>
+                <div class="modal-card modalMargin">
+                    <div class="box">
+                        <div class="field">
+                            <label class="label">Room Code</label>
+                            <div class="control">
+                                <input v-model="roomId" class="input" type="text" placeholder="">
+                            </div>
+                        </div>
+                        <div class="field is-grouped is-grouped-right">
+                            <p class="control">
+                                <a @click="this.joinRoom" class="button is-primary">
+                                Join
+                                </a>
+                            </p>
+                            <p class="control">
+                                <a class="button is-light" @click="isModalActive = false">
+                                Cancel
+                                </a>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </template>
+        </Modal>
+        <NavBar @menuSended="menuSended" ></NavBar>
         <section class="hero is-primary is-bold">
         <div class="hero-body">
             <div class="container">
@@ -33,13 +59,6 @@
                     <div class="column is-half">
                         <div class="box">
                             <div class="field">
-                                <label class="label">User Name</label>
-                                <div class="control">
-                                    <input class="input" type="text" placeholder="#123456">
-                                </div>
-                                </div>
-
-                                <div class="field">
                                 <label class="label">Room Code</label>
                                 <div class="control">
                                     <input v-model="roomId" class="input" type="text" placeholder="">
@@ -67,17 +86,20 @@
 
 <script>
 import NavBar from '../components/NavBar'
+import Modal from '../components/Modal'
 
 export default {
     name: 'home',
     components:{
-        NavBar
+        NavBar,
+        Modal
     },
     data : function() {
         return{
             join : false,
             roomId : null,
-            guid : null
+            guid : null,
+            isModalActive : false
         }
     },
     methods : {
@@ -98,6 +120,13 @@ export default {
         },
         joinRoom : function(){
             this.$router.push({ name: 'room', params: { id: this.roomId, create: false}});
+        },
+        menuSended : function(opt){
+            if(opt === 'create'){
+                this.createRoom();
+            }else if(opt === 'join'){
+                this.isModalActive = true;
+            }
         }
     }
 }
@@ -110,5 +139,9 @@ export default {
 
     .main{
         flex: 1;
+    }
+
+    .modalMargin{
+        margin-bottom: 20%;
     }
 </style>
