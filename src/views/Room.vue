@@ -17,13 +17,14 @@
         </div>
         </template>
     </Modal>
-    <NavBar @urlSended = "urlSended" :userPermLevel="userPerm"></NavBar>
+    <NavBar @urlSended = "urlSended" :userPermLevel="userPerm" :pageLoading="isPageLoading"></NavBar>
     <Notification v-bind:notify="this.notificationObject"></Notification>
     <div class="room">
         <div class="container">
             <div class="columns">
                 <div class="column is-three-fifths">
-                    <div @mouseover="playerControlsToggle(true)" @mouseleave="playerControlsToggle(false)" @dblclick="playerToggleFS">
+                    <div class="skaleton-parent" @mouseover="playerControlsToggle(true)" @mouseleave="playerControlsToggle(false)" @dblclick="playerToggleFS">
+                        <div v-show="this.isPageLoading === true" class="skaleton-child"></div>
                         <div :class="{'main-video' : userPerm !== 0}">
                             <vue-plyr :options="options_last" ref="plyr">
                             <div class="plyr__video-embed">
@@ -41,8 +42,28 @@
                         <p class="panel-heading">
                             Playlist
                         </p>
-                        <div v-show="this.videoList.length === 0" class="columns empty-plist is-gapless has-text-centered is-vcentered is-centered">
+                        <div v-show="this.videoList.length === 0 && this.isPageLoading !== true" class="columns empty-plist is-gapless has-text-centered is-vcentered is-centered">
                             Empty
+                        </div>
+                        <div v-show="this.isPageLoading === true" class="panel-main-scroll">
+                             <a class="panel-block">
+                                <div class="media-left">
+                                    <div class="skaleton-parent"><div class="skaleton-child"></div><span class="image-skeleton"></span></div>
+                                </div>
+                                <div class="skaleton-parent full-wh"><div class="skaleton-child"></div><span class="title-skeleton"></span></div>
+                            </a>
+                            <a class="panel-block">
+                                <div class="media-left">
+                                    <div class="skaleton-parent"><div class="skaleton-child"></div><span class="image-skeleton"></span></div>
+                                </div>
+                                <div class="skaleton-parent full-wh"><div class="skaleton-child"></div><span class="title-skeleton"></span></div>
+                            </a>
+                            <a class="panel-block">
+                                <div class="media-left">
+                                    <div class="skaleton-parent"><div class="skaleton-child"></div><span class="image-skeleton"></span></div>
+                                </div>
+                                <div class="skaleton-parent full-wh"><div class="skaleton-child"></div><span class="title-skeleton"></span></div>
+                            </a>
                         </div>
                         <div v-show="this.videoList.length != 0" class="panel-main-scroll">
                             <a v-for="(video, index) in videoList" v-bind:key="index" v-on:click="changeCurrentVideo(video)" :class="{'panel-block' : true, 'is-active': playlistUiActive(video)}">
@@ -72,6 +93,17 @@
                         <p class="panel-heading">
                             Users
                         </p>
+                        <div v-show="this.isPageLoading === true">
+                            <a class="panel-block user-block is-block">
+                            <div class="skaleton-parent"><div class="skaleton-child user-title-skaleton"></div><span></span><div class="skaleton-child"></div></div>
+                            </a>
+                            <a class="panel-block user-block is-block">
+                                <div class="skaleton-parent"><div class="skaleton-child user-title-skaleton"></div><span></span><div class="skaleton-child"></div></div>
+                            </a>
+                            <a class="panel-block user-block is-block">
+                                <div class="skaleton-parent"><div class="skaleton-child user-title-skaleton"></div><span></span><div class="skaleton-child"></div></div>
+                            </a>
+                        </div>
                         <UserListItem v-for="(user, index) in userList" v-bind:key="index"
                             v-bind:list = "user" 
                             v-bind:isActive = "user.userId === socketClientId"
@@ -130,7 +162,8 @@ export default {
                 invertTime : false
             },
             userPerm : 2,
-            isModalActive : false
+            isModalActive : false,
+            isPageLoading : true
         }
     },
     methods : {
@@ -426,6 +459,70 @@ export default {
     iframe{
         pointer-events: none;
         position: absolute;
+    }
+
+    .skaleton-parent{
+        position: relative;
+        overflow: hidden;
+    }
+
+    .skaleton-parent > .skaleton-child{
+        position: absolute;
+        width: 100%;
+        height : 100%;
+        z-index: 4;
+        background-color: #ddd;
+    }
+
+    .skaleton-parent > .skaleton-child::after{
+        z-index: 5;
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        -webkit-transform: translateX(-100%);
+        transform: translateX(-100%);
+        -webkit-animation: shimmer 2s infinite;
+        animation: shimmer 2s infinite;
+        background-image: linear-gradient(90deg, rgba(255, 255, 255, 0) 0, rgba(255, 255, 255, 0.2) 20%, rgba(255, 255, 255, 0.5) 60%, rgba(255, 255, 255, 0));
+        content: '';
+    }
+
+    @-webkit-keyframes shimmer {
+        100% {
+            -webkit-transform: translateX(100%);
+                    transform: translateX(100%);
+        }
+    }
+    @keyframes shimmer {
+        100% {
+            -webkit-transform: translateX(100%);
+                    transform: translateX(100%);
+        }
+    }
+
+    .image-skeleton{
+        position: relative;
+        background-color: #dbdbdb;
+        width: 64px;
+        height: 64px;
+    }
+
+    .title-skeleton{
+        position: relative;
+        background-color: #dbdbdb;
+        height: 100%;
+        height: 100%;
+    }
+
+    .full-wh{
+        width: 100%;
+        height: 100%;
+    }
+
+    .user-title-skaleton{
+        width: 40% !important;
     }
 
 </style>

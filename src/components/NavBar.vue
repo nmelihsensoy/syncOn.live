@@ -23,7 +23,12 @@
             </router-link>
             </div>
             <div v-if="this.$route.name === 'room'" v-show="this.userPermLevel <= 1" class="navbar-start queue-input">
-                <div class="field has-addons navbar-item">
+                <div v-show="this.pageLoading === true" class="navbar-item">
+                    <div class="skaleton-parent">
+                        <div class="skaleton-child"></div><span class="url-bar-skeleton"></span>
+                    </div>
+                </div>
+                <div v-show="this.pageLoading !== true" class="field has-addons navbar-item">
                     <div class="control">
                         <input v-model="video_url" v-on:keyup.enter="sendUrl" :class="{'is-danger' : !urlValid}" class="input" type="text" placeholder="add video to queue">
                     </div>
@@ -47,7 +52,17 @@
                 </div>
             </div>
             <div v-if="this.$route.name === 'room'" class="navbar-end">
-                <div class="navbar-item">
+                <div v-show="this.pageLoading === true" class="navbar-item">
+                    <div class="skaleton-parent">
+                        <div class="skaleton-child"></div><span class="bar-button"></span>
+                    </div>
+                </div>
+                <div v-show="this.pageLoading === true" class="navbar-item">
+                    <div class="skaleton-parent">
+                        <div class="skaleton-child"></div><span class="bar-button"></span>
+                    </div>
+                </div>
+                <div v-show="this.pageLoading !== true" class="navbar-item">
                     <div class="buttons">
                     <a class="button is-info">
                         <strong>Invite Friend</strong>
@@ -68,7 +83,7 @@ var url = require('url');
 
 export default {
     name : 'NavBar',
-    props: ['videoUrl', 'userPermLevel'],
+    props: ['videoUrl', 'userPermLevel', 'pageLoading'],
     data : function() {
         return{
             video_url : null,
@@ -113,6 +128,16 @@ export default {
 
     .queue-input input{
         width: 300px;
+    }
+
+    .url-bar-skeleton{
+        width: 354px;
+        height: 29px;
+    }
+
+    .bar-button{
+        width: 110px;
+        height: 29px;
     }
 
 </style>

@@ -1,126 +1,195 @@
 const server = require('http').createServer()
 const io = require('socket.io')(server)
 
-var rooms = [];
+const rooms = {};
+const clients = {};
+
+function clientInit(clientObj){
+    var clientId = clientObj.clientId;
+
+    if(clients.hasOwnProperty(clientId)){
+        return new Error(clientId + ": Client Already Exist!");
+    }else{
+        clientObj.permLevel = 2;
+        clientObj.roomId = null;
+        
+        return clientObj;
+    }
+}
+
+function roomInit(roomObj){
+    var roomId = roomObj.roomId;
+    if(rooms.hasOwnProperty(roomId)){
+        return new Error(roomId + ": Room Already Exist!");
+    }else{
+        roomObj.host = null;
+        roomObj.users = {};
+        roomObj.playlist = {};
+
+        return roomObj;
+    }
+}
+
+function createRoom(socket, hostObj, roomObj){
+    try{
+        hostObj = clientInit(hostObj);
+        roomObj = roomInit(roomObj);
+
+        socket.join(roomObj.roomId);
+
+        hostObj.permLevel = 0;
+        hostObj.roomId = roomObj.roomId;
+        clients[hostObj.clientId] = hostObj;
+
+        roomObj.host = hostObj.clientId;
+        roomObj.users[hostObj.clientId] = hostObj;
+        
+        rooms[roomObj.roomId] = roomObj;
+        
+        roomUsersUpdate(roomObj.roomId);
+        console.log(hostObj.clientId + " created a room "+roomObj.roomId);
+
+    }catch(e){
+        console.log(e);
+    }
+}
+
+function joinRoom(socket, roomId, clientObj){
+    try{
+        clientObj = clientInit(clientObj);
+        if(!rooms.hasOwnProperty(roomId)){
+            new Error(roomId + " Room Doesn't Exist!");
+        }
+
+        clientObj.roomId = roomId;
+        socket.join(roomId);
+
+        roomUsersUpdate(roomId);
+        console.log(clientObj.clientId + " joined a room "+roomId);
+    }catch(e){
+        console.log(e);
+    }
+}
+
+function giveAdminPerm(socket, roomId, userId){
+    try{
+        if(clients[socket.id].permLevel === 0 && rooms[roomId].users.hasOwnProperty(userId)){
+            if(clients[socket.id].permLevel === 2){
+                clients[socket.id].permLevel = 1;
+                roomUsersUpdate(roomId);
+            }else if(clients[socket.id].permLevel === 1){
+                clients[socket.id].permLevel = 2;
+                roomUsersUpdate(roomId);
+            }else{
+                new Error(userId + "is a host");
+            }
+        }else{
+            new Error("Unauthorized Operation or User Doesn't Exist");
+        }
+    }catch(e){
+        console.log(e);
+    }
+}
+
+function leaved(socket){
+    try{
+        //clients[socket.id] = clients[socket.id] || {};
+        //delete clients[socket.id]
+        if(clients.hasOwnProperty(socket.id) && (rooms.hasOwnProperty(clients[socket.id].roomId))){
+            var clientsRoomId = clients[socket.id].roomId;
+            if(clients[socket.id].permLevel === 0){
+                for(var client in rooms[clientsRoomId].users){
+                    client.leave(clientsRoomId);
+                    delete clients[client];
+                }
+                delete rooms[clientsRoomId];
+            }else{
+                delete rooms[clientsRoomId].users[socket.id];
+                socket.id.leave(clientsRoomId);
+            }
+    
+            delete clients[socket.id];
+        }else{
+            new Error("Client or Room Doesn't Exist!");
+        }
+    }catch(e){
+        console.log(e);
+    }
+}
+
+function roomUsersUpdate(roomId){
+    io.sockets.to(roomId).emit('users update', rooms[roomId].users);
+}
+
+function roomPlaylistUpdate(socket, roomId, playlistObjList){
+    try{
+        if(rooms.hasOwnProperty(roomId) && rooms[roomId].users.hasOwnProperty(socket.id) 
+                && rooms[roomId].users[socket.id].permLevel <= 1){
+        
+            rooms[roomId].playlist = playlistObjList;
+            socket.to(roomId).emit('playlist update', playlistObjList);
+        }else{
+            new Error("Client Not Authorized or Room Doesn't Exist");
+        }
+    }catch(e){
+        console.log(e);
+    }
+}
+
+function changeNickName(socket, roomId, new_nickName){
+    try{
+        if(rooms.hasOwnProperty(roomId) && rooms[roomId].users.hasOwnProperty(socket.id)){
+            rooms[roomId].users[socket.id].nickName = new_nickName;
+            clients[socket.id].nickName = new_nickName;
+            roomUsersUpdate(roomId);
+        }else{
+            new Error("Room or Client Doesn't Exist");
+        }
+    }catch(e){
+        console.log(e);
+    }
+}
 
 io.on('connection', function (socket){
     console.log(socket.id + ' connected.');
-    //io.emit('this', { will: 'be received by everyone'});
-
-    socket.on('playlist update', function(room, playlist){
-        //console.log(playlist);
-        rooms[room].videos = playlist;
-        socket.to(room).emit('playlist update', playlist);
-    });
-
-    socket.on('video update', function(room, user, video){
-        console.log(video);
-        socket.to(room).emit('video update', video);
-    });
-
-    //socket.on('list room', function (room, fn){
-    //    fn(io.sockets.adapter.rooms[room]);
-    //});
-
-    socket.on('debug room', function(){
-        //console.log(io.sockets.adapter.rooms[room.roomId]);
-        console.log(rooms);
-    });
-
-    socket.on('debug room2', function(room, user){
-        //console.log(io.sockets.adapter.rooms[room.roomId]);
-        console.log(rooms[room].users[user]);
-    });
-
-    socket.on('latency', function (startTime, cb) {
-        cb(startTime);
-    }); 
-
-    /* USER OPERATIONS */
-
-    //{userId: , roomId, nickName, permission_level, }
-    //0:Host, 1:Admin, 2:User
-    socket.on('create room', function(room, host){
-        room.users = {};
-        room.videos = {};
-        socket.join(room.roomId);
-        host.userId = socket.id;
-        host.roomId = room.roomId;
-        host.permission_level = 0;
-
-        room.users[socket.id] = host;
-        room.host =  socket.id;
-        rooms[room.roomId] = room;
-        console.log(socket.id + ' created a room: ' + room.roomId);
-
-        io.sockets.to(room.roomId).emit('users update', rooms[room.roomId]);
-    });
-
-    //{roomId: '', owner: 'client_id'}
-    //roomId : { roomId: 12345, users: {{userId:, roomId, nickName, permission_level}, {userId:, roomId, nickName, permission_level}}, host: '2ivNsZLc7uFpdxVoAAAA' }
-    socket.on('join room', function(room, user){
-        if(rooms[room.roomId]){
-            user.permission_level = 2;
-            user.userId = socket.id;
-            user.roomId = room.roomId;
-            rooms[room.roomId].users[socket.id] = user;
-            socket.join(room.roomId);
-            console.log(socket.id + ' joined to the room: ' + room.roomId);
-            io.to(room).emit('user joined', socket.id + ' joined to the room: ' + room);
-        }else{
-            console.log('Chanel couldnt find');
-        }
-
-        io.sockets.to(room.roomId).emit('users update', rooms[room.roomId]);
-        io.to(socket.id).emit('playlist update', rooms[room.roomId].videos);
-    });
-
-    socket.on('change host', function(room, user){
-        if(rooms[room.roomId].host.id === socket.id){
-            rooms[room.roomId].users[socket.id] = rooms[room.roomId].host;
-            rooms[room.roomId].host = user;
-            console.log(room.roomId + ' host changed. new host' + user.nickName);
-        }
-    });
-
-    socket.on('leave room', function(room){
-        socket.leave(room);
-        console.log(socket.id + ' leaved from the room: ' + room);
-        io.to(room).emit('user leaved', socket.id + ' leaved from the room: ' + room);
-    });
-
-
-    socket.on('change nickname', function(room, newNick){
-        console.log('nickname changed');
-        rooms[room].users[socket.id].nickName = newNick;
-        io.sockets.to(room).emit('users update', rooms[room]);
-    });
-
-    socket.on('kick user', function(user){
-        io.sockets.connected[user].disconnect();
-    });
-
-    socket.on('give admin perm', function(room, user){
-        if(rooms[room].users[socket.id].permission_level === 0){
-            if(rooms[room].users[user].permission_level === 2){
-                rooms[room].users[user].permission_level = 1;
-            }else{
-                rooms[room].users[user].permission_level = 2;
-            }
-        }
-        io.sockets.to(room).emit('users update', rooms[room]);
-    });
-
-    socket.on('client list', function(room){
-        console.log(io.sockets.adapter.rooms[room]);
-    });
 
     socket.on('disconnect', function(){
-        console.log(socket.id + ' disconnected');
-        console.log(io.sockets.adapter);
+        console.log(socket.id + ' disconnected.');
+        leaved(socket);
     });
 
-    /* USER OPERATIONS */
+    socket.on('kick user', function(clientId){
+        io.sockets.connected[clientId].disconnect();
+    });
+
+    socket.on('change nick', function(roomId, new_nickName){
+        changeNickName(socket, roomId, new_nickName);
+    });
+
+    socket.on('give admin', function(roomId, userId){
+        giveAdminPerm(socket, roomId, userId);
+    });
+
+    /*  */
+
+    socket.on('create room', function(hostObj, roomObj){
+        createRoom(socket, hostObj, roomObj);
+    });
+
+    socket.on('join room', function(roomId, clientObj){
+        joinRoom(socket, roomId, clientObj);
+    });
+
+    /*  */
+
+    socket.on('playlist', function(roomId, playlistObjList){
+        roomPlaylistUpdate(socket, roomId, playlistObjList);
+    });
+
+    socket.on('player', function(roomId, eventObj){
+        socket.to(roomId).emit('player', eventObj);
+    });
+
 });
 
 server.listen(3300)
