@@ -1,7 +1,7 @@
 <template>
     <nav class="navbar is-light" role="navigation" aria-label="main navigation">
         <div class="navbar-brand">
-            <a class="navbar-item" @click="$router.push({ name: 'home' })">
+            <a class="navbar-item">
             <h3 class="title is-3">Youtube-Sync</h3>
             </a>
 
@@ -63,8 +63,9 @@
                     </div>
                 </div>
                 <div v-show="this.pageLoading !== true" class="navbar-item">
+                    <input v-show="false" type="text" :value="roomId" id="copyElement">
                     <div class="buttons">
-                    <a class="button is-info">
+                    <a @click="inviteFriend" class="button is-info">
                         <strong>Invite Friend</strong>
                     </a>
                     <a @click="sendMenu('exit')" class="button is-danger">
@@ -88,7 +89,8 @@ export default {
         return{
             video_url : null,
             urlValid : true,
-            copied : false
+            copied : false,
+            roomId : this.$route.params.id
         }
     },
     methods : {
@@ -110,6 +112,15 @@ export default {
         },
         sendMenu : function(opt){
             this.$emit('menuSended', opt);
+        },
+        inviteFriend : function(){
+            var copyText = document.getElementById("copyElement");
+
+            /* Select the text field */
+            copyText.select();
+
+            /* Copy the text inside the text field */
+            document.execCommand("copy");
         }
     }
 }

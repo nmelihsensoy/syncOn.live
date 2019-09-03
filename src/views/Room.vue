@@ -17,7 +17,7 @@
         </div>
         </template>
     </Modal>
-    <NavBar @urlSended = "urlSended" :userPermLevel="userPerm" :pageLoading="isPageLoading"></NavBar>
+    <NavBar @urlSended = "urlSended" :userPermLevel="userPerm" :pageLoading="isPageLoading" @menuSended="menuSended"></NavBar>
     <Notification v-bind:notify="this.notificationObject" v-bind:trigger="this.notificationTrigger"></Notification>
     <div class="room">
         <div class="container">
@@ -27,12 +27,9 @@
                         <div v-show="this.isPageLoading === true" class="skaleton-child"></div>
                         <div :class="{'main-video' : userPerm !== 0}">
                             <vue-plyr :options="options_last" ref="plyr">
-                            <div class="plyr__video-embed">
-                                <iframe
-                                src="https://www.youtube.com/embed/?iv_load_policy=3&modestbranding=1&playsinline=1&showinfo=0&rel=0&enablejsapi=1&disablekb=1"
-                                allowfullscreen allowtransparency >
-                                </iframe>
-                            </div>
+                                <video poster="https://cdn.pixabay.com/photo/2018/01/26/07/05/retro-3107950_960_720.png" src="video.mp4">
+                                    <source src="../assets/blank.mp4" type="video/mp4" size="720">
+                                </video>
                             </vue-plyr>
                         </div>
                     </div>
@@ -42,7 +39,7 @@
                         <p class="panel-heading">
                             Playlist
                         </p>
-                        <div v-show="this.videoList.length === 0 && this.isPageLoading !== true" class="columns empty-plist is-gapless has-text-centered is-vcentered is-centered">
+                        <div v-show="!this.videoList.length && this.isPageLoading !== true" class="columns empty-plist is-gapless has-text-centered is-vcentered is-centered">
                             Empty
                         </div>
                         <div v-show="this.isPageLoading === true" class="panel-main-scroll" style="border-bottom: 1px solid #dbdbdb">
@@ -65,7 +62,7 @@
                                 <div class="skaleton-parent full-wh"><div class="skaleton-child"></div><span class="title-skeleton"></span></div>
                             </a>
                         </div>
-                        <div v-show="this.videoList.length != 0 && this.isPageLoading !== true" class="panel-main-scroll">
+                        <div v-show="this.videoList.length && this.isPageLoading !== true" class="panel-main-scroll">
                             <a v-for="(video, index) in videoList" v-bind:key="index" v-on:click="changeCurrentVideo(video)" :class="{'panel-block' : true, 'is-active': playlistUiActive(video)}">
                                 <div class="media">
                                     <div class="media-left">
@@ -80,7 +77,7 @@
                                 </div>
                             </a>
                         </div>
-                        <div v-show="this.videoList.length != 0 && this.userPerm <= 1 && this.isPageLoading !== true" class="panel-block custom1 buttons">
+                        <div v-show="this.videoList.length && this.userPerm <= 1 && this.isPageLoading !== true" class="panel-block buttons" style="border-top: 1px solid #dbdbdb">
                             <button class="button is-link is-outlined" @click="clearPlaylist">
                             clear playlist
                             </button>
@@ -136,6 +133,7 @@ const getVideoId = require('get-video-id');
 const axios = require('axios');
 
 const YOUTUBE_API_KEY = ApiKeys.youtube;
+const EMPTY_PLAYING_VIDEO = {url: null};
 
 export default {
     name: 'room',
@@ -152,13 +150,14 @@ export default {
             socket : {},
             socketClientId : null,
             videoList : [],
-            playingVideo : {url: null},
+            playingVideo : EMPTY_PLAYING_VIDEO,
             notificationObject : {},
             nickName : UserNames.getRandomName(),
             userList : [],
             options_last : {
                 invertTime : false,
-                blankVideo : '../../assets/blank.mp4'
+                blankVideo : '../assets/blank.mp4',
+                youtube  : { noCookie: false, rel: 0, showinfo: 0, iv_load_policy: 3, modestbranding: 1 }
             },
             userPerm : 2,
             isModalActive : false,
@@ -170,7 +169,7 @@ export default {
         clearPlaylist : function(){
             if(this.userPerm <= 1){
                 this.videoList = [];
-                this.playingVideo = {url: null};
+                this.playingVideo = EMPTY_PLAYING_VIDEO;
                 this.clearPlayer();
                 this.updatePlaylist();
             }
@@ -179,9 +178,10 @@ export default {
             this.player.source = {
                 type: 'video',
                 title: 'Playlist Empty',
+                poster : 'https://cdn.pixabay.com/photo/2018/01/26/07/05/retro-3107950_960_720.png',
                 sources: [
                     {
-                        src: './assets/blank.mp4',
+                        src: '../assets/blank.mp4',
                         type: 'video/mp4',
                         size: 720,
                     }
@@ -216,7 +216,7 @@ export default {
                     this.videoList.push({url: videoUrl, v_id: video_id, title: response.data.items[0].snippet.title, thumbnail:response.data.items[0].snippet.thumbnails.default.url})
                     //this.notificationObject = {type : 'warning', closeButton : true, bodyMessage : response.data.items[0].snippet.title, duration : -1, htmlTags: false, customClass: ''};
                     //playlist has a only 1 item load to player
-                    if(this.videoList.length === 1){
+                    if(this.videoList.length && this.videoList.length === 1){
                         this.addToPlaylist({url: videoUrl})
                     }
                     this.updatePlaylist();
@@ -225,7 +225,7 @@ export default {
                     console.log(error)
                     this.errored = true
                 })
-                //.finally(() => this.loading = false)
+                //.finally(() => console.log("Fetched"))
         },
         //When the url came from navbar get the video infos from youtube api
         urlSended : function(data){
@@ -244,33 +244,33 @@ export default {
         deleteFromPlaylist : function(){
             if(this.userPerm <= 1){
                 var index = this.videoList.indexOf(this.playingVideo); //find playing item index from videoList
-                this.videoList.splice(index, 1); //remove found item from videoList
-                if(this.videoList.length == 0){
-                    this.clearPlayer();
-                    this.playingVideo = {url: null};
-                }else if(this.videoList.length == 1){
-                    this.addToPlaylist(this.videoList[0]);
-                }else if(this.videoList.length == index){
-                    this.addToPlaylist(this.videoList[index-1]);
-                }else{
-                    this.addToPlaylist(this.videoList[index+1]);
+                if(index !== -1){
+                    this.videoList.splice(index, 1); //remove found item from videoList
+                    
+                    if(this.videoList.length){
+                        this.clearPlayer();
+                        this.playingVideo = {url: null};
+                    }else if(this.videoList.length == 1){
+                        this.addToPlaylist(this.videoList[0]);
+                    }else if(this.videoList.length == index){
+                        this.addToPlaylist(this.videoList[index-1]);
+                    }else{
+                        this.addToPlaylist(this.videoList[index+1]);
+                    }
+                    this.updatePlaylist();
                 }
-                this.updatePlaylist();
             }
         },
         isInPlaylist : function(video){
-            for(var i=0; i<this.videoList.length; i++){
-                if(video === this.videoList[i].url){
-                    return true;
-                }
-            }
+            //for(var i=0; i<this.videoList.length; i++){
+            //    if(video === this.videoList[i].url){
+            //        return true;
+            //    }
+            //}
             return false;
         },
-        pushNotification : function(obj){
-            this.testNotification = obj;
-        },
         join_room : function(){
-            this.socket.emit('join room', this.roomId, {nickName : this.nickName}, {roomId : this.roomId});
+            this.socket.emit('join room', this.roomId, {nickName : this.nickName});
         },
         create_room : function(){
             this.socket.emit('create room', {nickName : this.nickName}, {roomId : this.roomId});
@@ -305,29 +305,33 @@ export default {
         },
         notificate : function(){
             this.notificationObject = {type : 'warning', closeButton : true, bodyMessage : "Connecting...", duration : -1, htmlTags: false, customClass: ''};
+        },
+        menuSended : function(opt){
+            if(opt === 'exit'){
+                this.leave_room();
+            }
         }
     },
     created (){ 
-        this.socket = {};
-        this.socket = io.connect("http://localhost:3300", {
+        this.socket = io.connect("http://10.8.0.2:3300", {
             reconnection : false
         });
-        if(this.roomCreate === true){
-            this.userPerm = 0;
-            this.create_room(this.roomId);
-        }else{
-            this.join_room(this.roomId);
-        }
     },
     mounted(){
         this.notificate();
 
         this.socket.on('connect', () => {
             this.socketClientId = this.socket.id;
+            if(this.roomCreate){
+                this.userPerm = 0;
+                this.create_room();
+            }else{
+                this.join_room();
+            }
             setTimeout(function (){
                 this.isPageLoading = false;
                 this.notificationTrigger = 'connect';
-            }.bind(this), 5000)
+            }.bind(this), 1000)
         });
 
         this.socket.on('disconnect', (reason) => {
@@ -342,21 +346,17 @@ export default {
         //this.socket.on('error')
 
         this.socket.on('playlist update', data =>{
-            this.videoList = data.list;
+            if(data.hasOwnProperty('list')){
+                this.videoList = data.list;
+            }
 
             if((data.playing.url != this.playingVideo.url) && data.playing.url != null){
                 this.addToPlaylist(data.playing);
             }else if((data.playing.url != this.playingVideo.url) && data.playing.url === null){ 
                 this.clearPlayer();
             }
-            this.playingVideo = data.playing;
-        });
-
-        this.player.once('ready', () =>{ //player init
-            if(this.playingVideo.url === null){
-                this.clearPlayer();
-            }else{
-                this.addToPlaylist(this.playingVideo);
+            if(data.hasOwnProperty('playing')){
+                this.playingVideo = data.playing;
             }
         });
 

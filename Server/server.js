@@ -60,30 +60,18 @@ function createRoom(socket, hostObj, roomObj){
 
 function joinRoom(socket, roomId, clientObj){
     clientObj = clientInit(socket, clientObj);
-    if(!rooms.hasOwnProperty(roomId)){
-        //new Error(roomId + " Room Doesn't Exist!");
-        console.log(roomId + " Room Doesn't Exist!");
-        io.sockets.connected[socket.id].disconnect();
-    }
+    clientObj.roomId = roomId;
+    socket.join(roomId);
 
-    //if(!clients.hasOwnProperty(clientObj.clientId) || !rooms[roomId].users.hasOwnProperty(clientObj.clientId)){
-    //    //new Error(roomId + " Room Doesn't Exist!");
-    //    console.log(roomId + " Room Doesn't Exist!");
-    //}
+    clients[socket.id] = clientObj;
+    rooms[roomId].users[socket.id] = clientObj;
 
-    if(clientObj !== null){
-        clientObj.roomId = roomId;
-        socket.join(roomId);
+    console.log(JSON.stringify(clientObj));
+    console.log('ROOM : '+roomId)
 
-        clients[clientObj.clientId] = clientObj;
-        rooms[roomId].users[clientObj.clientId] = clientObj;
-
-        roomUsersUpdate(roomId);
-        io.to(socket.id).emit('playlist update', rooms[roomId].playlist);
-        console.log(clientObj.clientId + " joined a room "+roomId);
-    }else{
-        io.sockets.connected[socket.id].disconnect();
-    }
+    roomUsersUpdate(roomId);
+    io.to(socket.id).emit('playlist update', rooms[roomId].playlist);
+    console.log(clientObj.clientId + " joined a room "+roomId);
 }
 
 function giveAdminPerm(socket, roomId, userId){
