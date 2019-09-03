@@ -24,8 +24,8 @@
         <div v-show="!editUsername" class="user-list-item">
             {{list.nickName}} <span v-if="this.isActive" class="tag is-success perm-tag">You</span>
             
-            <span v-if="list.permission_level === 0" class="tag is-info perm-tag">Owner</span>
-            <span v-else-if="list.permission_level === 1" class="tag is-warning perm-tag">Admin</span>
+            <span v-if="list.permLevel === 0" class="tag is-info perm-tag">Owner</span>
+            <span v-else-if="list.permLevel === 1" class="tag is-warning perm-tag">Admin</span>
             <div class="user-buttons is-pulled-right">
                 <div class="buttons">
                     <div v-if="this.isActive" class="tooltip">
@@ -36,18 +36,18 @@
                             </span>
                         </a>
                     </div>
-                    <div v-if="this.userPermLevel === 0 && !this.isActive && list.permission_level != 0" class="tooltip">
-                        <span v-if="list.permission_level === 2" class="tooltiptext">Make Admin</span>
-                        <span v-else-if="list.permission_level === 1" class="tooltiptext">Take Admin</span>
-                        <a @click="makeAdmin(list.userId)" class="button is-small tooltip-trigger">
+                    <div v-if="this.userPermLevel === 0 && !this.isActive && list.permLevel != 0" class="tooltip">
+                        <span v-if="list.permLevel === 2" class="tooltiptext">Make Admin</span>
+                        <span v-else-if="list.permLevel === 1" class="tooltiptext">Take Admin</span>
+                        <a @click="makeAdmin(list.clientId)" class="button is-small tooltip-trigger">
                             <span class="icon is-small">
                                 <i class="lni-key"></i>
                             </span>
                         </a>
                     </div>
-                    <div v-if="this.userPermLevel <= 1 && !this.isActive && list.permission_level != 0" class="tooltip">
+                    <div v-if="this.userPermLevel <= 1 && !this.isActive && list.permLevel != 0" class="tooltip">
                         <span class="tooltiptext">Kick</span>
-                        <a @click="kickUser(list.userId)" class="button is-small tooltip-trigger">
+                        <a @click="kickUser(list.clientId)" class="button is-small tooltip-trigger">
                             <span class="icon is-small">
                                 <i class="lni-exit"></i>
                             </span>

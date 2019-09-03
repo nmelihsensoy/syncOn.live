@@ -11,11 +11,10 @@
 <script>
 export default {
     name : 'Notification',
-    props: ['notify'],
+    props: ['notify', 'trigger'],
     data (){
         return {
-            notifArray : [],
-            addToList : this.notify
+            notifArray : []
         }
     },
     methods : {
@@ -34,6 +33,11 @@ export default {
     watch : {
         notify : function(val){
             this.push(val)
+        },
+        trigger : function(val2){
+            if(val2){
+                this.notifArray.pop();
+            }
         }
     }
 }

@@ -4,14 +4,17 @@ const io = require('socket.io')(server)
 const rooms = {};
 const clients = {};
 
-function clientInit(clientObj){
-    var clientId = clientObj.clientId;
+function clientInit(socket, clientObj){
+    var clientId = socket.id;
 
     if(clients.hasOwnProperty(clientId)){
-        return new Error(clientId + ": Client Already Exist!");
+        console.log(clientId + ": Client Already Exist!");
+        //return new Error(clientId + ": Client Already Exist!");
+        return null;
     }else{
         clientObj.permLevel = 2;
         clientObj.roomId = null;
+        clientObj.clientId = clientId;
         
         return clientObj;
     }
@@ -20,7 +23,9 @@ function clientInit(clientObj){
 function roomInit(roomObj){
     var roomId = roomObj.roomId;
     if(rooms.hasOwnProperty(roomId)){
-        return new Error(roomId + ": Room Already Exist!");
+        console.log(roomId + ": Room Already Exist!");
+        //return new Error(roomId + ": Room Already Exist!");
+        return null;
     }else{
         roomObj.host = null;
         roomObj.users = {};
@@ -31,10 +36,10 @@ function roomInit(roomObj){
 }
 
 function createRoom(socket, hostObj, roomObj){
-    try{
-        hostObj = clientInit(hostObj);
-        roomObj = roomInit(roomObj);
+    hostObj = clientInit(socket, hostObj);
+    roomObj = roomInit(roomObj);
 
+    if(roomObj !== null){
         socket.join(roomObj.roomId);
 
         hostObj.permLevel = 0;
@@ -48,72 +53,87 @@ function createRoom(socket, hostObj, roomObj){
         
         roomUsersUpdate(roomObj.roomId);
         console.log(hostObj.clientId + " created a room "+roomObj.roomId);
-
-    }catch(e){
-        console.log(e);
+    }else{
+        io.sockets.connected[socket.id].disconnect();
     }
 }
 
 function joinRoom(socket, roomId, clientObj){
-    try{
-        clientObj = clientInit(clientObj);
-        if(!rooms.hasOwnProperty(roomId)){
-            new Error(roomId + " Room Doesn't Exist!");
-        }
+    clientObj = clientInit(socket, clientObj);
+    if(!rooms.hasOwnProperty(roomId)){
+        //new Error(roomId + " Room Doesn't Exist!");
+        console.log(roomId + " Room Doesn't Exist!");
+        io.sockets.connected[socket.id].disconnect();
+    }
 
+    //if(!clients.hasOwnProperty(clientObj.clientId) || !rooms[roomId].users.hasOwnProperty(clientObj.clientId)){
+    //    //new Error(roomId + " Room Doesn't Exist!");
+    //    console.log(roomId + " Room Doesn't Exist!");
+    //}
+
+    if(clientObj !== null){
         clientObj.roomId = roomId;
         socket.join(roomId);
 
+        clients[clientObj.clientId] = clientObj;
+        rooms[roomId].users[clientObj.clientId] = clientObj;
+
         roomUsersUpdate(roomId);
+        io.to(socket.id).emit('playlist update', rooms[roomId].playlist);
         console.log(clientObj.clientId + " joined a room "+roomId);
-    }catch(e){
-        console.log(e);
+    }else{
+        io.sockets.connected[socket.id].disconnect();
     }
 }
 
 function giveAdminPerm(socket, roomId, userId){
-    try{
-        if(clients[socket.id].permLevel === 0 && rooms[roomId].users.hasOwnProperty(userId)){
-            if(clients[socket.id].permLevel === 2){
-                clients[socket.id].permLevel = 1;
-                roomUsersUpdate(roomId);
-            }else if(clients[socket.id].permLevel === 1){
-                clients[socket.id].permLevel = 2;
-                roomUsersUpdate(roomId);
-            }else{
-                new Error(userId + "is a host");
-            }
+    if(clients[socket.id].permLevel === 0 && rooms[roomId].users.hasOwnProperty(userId)){
+        if(clients[userId].permLevel === 2){
+            clients[userId].permLevel = 1;
+            rooms[roomId].users[userId].permLevel = 1;
+            roomUsersUpdate(roomId);
+        }else if(clients[userId].permLevel === 1){
+            clients[userId].permLevel = 2;
+            rooms[roomId].users[userId].permLevel = 2;
+            roomUsersUpdate(roomId);
         }else{
-            new Error("Unauthorized Operation or User Doesn't Exist");
+            //new Error(userId + "is now admin");
+            console.log(userId + "is now admin");
         }
-    }catch(e){
-        console.log(e);
+    }else{
+        //new Error("Unauthorized Operation or User Doesn't Exist");
+        console.log("Unauthorized Operation or User Doesn't Exist");
+        io.sockets.connected[socket.id].disconnect();
     }
 }
 
-function leaved(socket){
-    try{
-        //clients[socket.id] = clients[socket.id] || {};
-        //delete clients[socket.id]
-        if(clients.hasOwnProperty(socket.id) && (rooms.hasOwnProperty(clients[socket.id].roomId))){
-            var clientsRoomId = clients[socket.id].roomId;
-            if(clients[socket.id].permLevel === 0){
-                for(var client in rooms[clientsRoomId].users){
-                    client.leave(clientsRoomId);
-                    delete clients[client];
-                }
-                delete rooms[clientsRoomId];
-            }else{
-                delete rooms[clientsRoomId].users[socket.id];
-                socket.id.leave(clientsRoomId);
+function deleteUser(roomId, clientId){
+    delete clients[clientId];
+    delete rooms[roomId].users[clientId];
+}
+
+function clientLeft(socket){
+    //clients[socket.id] = clients[socket.id] || {};
+    //delete clients[socket.id]
+    if(clients.hasOwnProperty(socket.id) && (rooms.hasOwnProperty(clients[socket.id].roomId) && 
+                rooms[clients[socket.id].roomId].users.hasOwnProperty(socket.id))){
+
+        var clientsRoomId = clients[socket.id].roomId;
+        if(clients[socket.id].permLevel === 0){
+            deleteUser(clientsRoomId, socket.id);
+            for(var client in rooms[clientsRoomId].users){
+                //io.sockets.sockets[client].leave(clientsRoomId);
+                io.sockets.connected[client].disconnect();
+                delete clients[client];
             }
-    
-            delete clients[socket.id];
+            delete rooms[clientsRoomId];
         }else{
-            new Error("Client or Room Doesn't Exist!");
+            deleteUser(clientsRoomId, socket.id);
+            roomUsersUpdate(clientsRoomId);
         }
-    }catch(e){
-        console.log(e);
+    }else{
+        //new Error("Client or Room Doesn't Exist!");
+        console.log("Client or Room Doesn't Exist!");
     }
 }
 
@@ -122,40 +142,34 @@ function roomUsersUpdate(roomId){
 }
 
 function roomPlaylistUpdate(socket, roomId, playlistObjList){
-    try{
-        if(rooms.hasOwnProperty(roomId) && rooms[roomId].users.hasOwnProperty(socket.id) 
-                && rooms[roomId].users[socket.id].permLevel <= 1){
-        
-            rooms[roomId].playlist = playlistObjList;
-            socket.to(roomId).emit('playlist update', playlistObjList);
-        }else{
-            new Error("Client Not Authorized or Room Doesn't Exist");
-        }
-    }catch(e){
-        console.log(e);
+    if(rooms.hasOwnProperty(roomId) && rooms[roomId].users.hasOwnProperty(socket.id) 
+            && rooms[roomId].users[socket.id].permLevel <= 1){
+    
+        rooms[roomId].playlist = playlistObjList;
+        socket.to(roomId).emit('playlist update', playlistObjList);
+    }else{
+        //new Error("Client Not Authorized or Room Doesn't Exist");
+        console.log("Client Not Authorized or Room Doesn't Exist");
     }
 }
 
 function changeNickName(socket, roomId, new_nickName){
-    try{
-        if(rooms.hasOwnProperty(roomId) && rooms[roomId].users.hasOwnProperty(socket.id)){
-            rooms[roomId].users[socket.id].nickName = new_nickName;
-            clients[socket.id].nickName = new_nickName;
-            roomUsersUpdate(roomId);
-        }else{
-            new Error("Room or Client Doesn't Exist");
-        }
-    }catch(e){
-        console.log(e);
+    if(rooms.hasOwnProperty(roomId) && rooms[roomId].users.hasOwnProperty(socket.id)){
+        rooms[roomId].users[socket.id].nickName = new_nickName;
+        clients[socket.id].nickName = new_nickName;
+        roomUsersUpdate(roomId);
+    }else{
+        //new Error("Room or Client Doesn't Exist");
+        console.log("Room or Client Doesn't Exist");
     }
 }
 
 io.on('connection', function (socket){
     console.log(socket.id + ' connected.');
 
-    socket.on('disconnect', function(){
-        console.log(socket.id + ' disconnected.');
-        leaved(socket);
+    socket.on('disconnect', function(reason){
+        console.log(socket.id + ' disconnected. ' + reason);
+        clientLeft(socket);
     });
 
     socket.on('kick user', function(clientId){

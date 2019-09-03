@@ -18,7 +18,7 @@
         </template>
     </Modal>
     <NavBar @urlSended = "urlSended" :userPermLevel="userPerm" :pageLoading="isPageLoading"></NavBar>
-    <Notification v-bind:notify="this.notificationObject"></Notification>
+    <Notification v-bind:notify="this.notificationObject" v-bind:trigger="this.notificationTrigger"></Notification>
     <div class="room">
         <div class="container">
             <div class="columns">
@@ -45,7 +45,7 @@
                         <div v-show="this.videoList.length === 0 && this.isPageLoading !== true" class="columns empty-plist is-gapless has-text-centered is-vcentered is-centered">
                             Empty
                         </div>
-                        <div v-show="this.isPageLoading === true" class="panel-main-scroll">
+                        <div v-show="this.isPageLoading === true" class="panel-main-scroll" style="border-bottom: 1px solid #dbdbdb">
                              <a class="panel-block">
                                 <div class="media-left">
                                     <div class="skaleton-parent"><div class="skaleton-child"></div><span class="image-skeleton"></span></div>
@@ -65,7 +65,7 @@
                                 <div class="skaleton-parent full-wh"><div class="skaleton-child"></div><span class="title-skeleton"></span></div>
                             </a>
                         </div>
-                        <div v-show="this.videoList.length != 0" class="panel-main-scroll">
+                        <div v-show="this.videoList.length != 0 && this.isPageLoading !== true" class="panel-main-scroll">
                             <a v-for="(video, index) in videoList" v-bind:key="index" v-on:click="changeCurrentVideo(video)" :class="{'panel-block' : true, 'is-active': playlistUiActive(video)}">
                                 <div class="media">
                                     <div class="media-left">
@@ -80,7 +80,7 @@
                                 </div>
                             </a>
                         </div>
-                        <div v-show="this.videoList.length != 0 && this.userPerm <= 1" class="panel-block custom1 buttons">
+                        <div v-show="this.videoList.length != 0 && this.userPerm <= 1 && this.isPageLoading !== true" class="panel-block custom1 buttons">
                             <button class="button is-link is-outlined" @click="clearPlaylist">
                             clear playlist
                             </button>
@@ -104,15 +104,17 @@
                                 <div class="skaleton-parent"><div class="skaleton-child user-title-skaleton"></div><span></span><div class="skaleton-child"></div></div>
                             </a>
                         </div>
-                        <UserListItem v-for="(user, index) in userList" v-bind:key="index"
-                            v-bind:list = "user" 
-                            v-bind:isActive = "user.userId === socketClientId"
-                            @changeNick = "changeNick"
-                            v-bind:userPermLevel="userList[socketClientId].permission_level"
-                            @makeAdmin = "makeAdmin"
-                            @kickUser = "kickUser"
-                        >
-                        </UserListItem>
+                        <div v-show="this.isPageLoading !== true">
+                            <UserListItem v-for="(user, index) in userList" v-bind:key="index"
+                                v-bind:list = "user" 
+                                v-bind:isActive = "user.clientId === socketClientId"
+                                @changeNick = "changeNick"
+                                v-bind:userPermLevel = "userPerm"
+                                @makeAdmin = "makeAdmin"
+                                @kickUser = "kickUser"
+                            >
+                            </UserListItem>
+                        </div>
                     </nav>
                 </div>
             </div>
@@ -150,20 +152,18 @@ export default {
             socket : {},
             socketClientId : null,
             videoList : [],
-            loading: true,
-            errored: false,
-            videoState : null,
             playingVideo : {url: null},
             notificationObject : {},
             nickName : UserNames.getRandomName(),
             userList : [],
-            isDisabled : true,
             options_last : {
-                invertTime : false
+                invertTime : false,
+                blankVideo : '../../assets/blank.mp4'
             },
             userPerm : 2,
             isModalActive : false,
-            isPageLoading : true
+            isPageLoading : true,
+            notificationTrigger : null
         }
     },
     methods : {
@@ -225,7 +225,7 @@ export default {
                     console.log(error)
                     this.errored = true
                 })
-                .finally(() => this.loading = false)
+                //.finally(() => this.loading = false)
         },
         //When the url came from navbar get the video infos from youtube api
         urlSended : function(data){
@@ -269,44 +269,42 @@ export default {
         pushNotification : function(obj){
             this.testNotification = obj;
         },
-        join_room : function(room){
-            this.socket.emit('join room', {roomId: room}, {nickName : this.nickName});
+        join_room : function(){
+            this.socket.emit('join room', this.roomId, {nickName : this.nickName}, {roomId : this.roomId});
         },
-        create_room : function(room){
-            this.socket.emit('create room', {roomId: room}, {nickName : this.nickName});
+        create_room : function(){
+            this.socket.emit('create room', {nickName : this.nickName}, {roomId : this.roomId});
         },
-        leave_room : function(room){
-            this.socket.emit('leave room', {roomId: room});
+        leave_room : function(){
+            this.socket.disconnect();
         },
-        room_emit : function(room, topic, msg){
-            this.socket.to(room).emit(topic, msg);
+        changeNick : function(new_nick){
+            this.socket.emit('change nick', this.roomId, new_nick);
         },
-        changeNick : function(nnick){
-            this.socket.emit('change nickname', this.roomId, nnick);
+        makeAdmin : function(user_client_id){
+            this.socket.emit('give admin', this.roomId, user_client_id);
         },
-        makeAdmin : function(u_id){
-            this.socket.emit('give admin perm', this.roomId, u_id);
-        },
-        kickUser : function(u_id){
-            this.socket.emit('kick user', u_id);
+        kickUser : function(user_client_id){
+            this.socket.emit('kick user', user_client_id);
         },
         updatePlaylist : function(){
             if(this.userPerm <= 1){
-                this.socket.emit('playlist update', this.roomId, {playing: this.playingVideo, playlist: this.videoList});
+                this.socket.emit('playlist', this.roomId, {playing: this.playingVideo, list: this.videoList});
             }
         },
         playerControlsToggle : function(t){
             if(!this.player.fullscreen.active && this.player.playing){
-                //console.log('YAZ');
                 this.player.toggleControls(t);
             }
-            
         },
         playerToggleFS : function(){
             this.player.fullscreen.toggle();
         },
-        sendVideoEvent : function(ev){
-            this.socket.emit('video update', this.roomId, this.socketClientId, { time: ev.timeStamp, type: ev.type, plyr : ev.detail.plyr.timers, currentTime : ev.detail.plyr.currentTime, buffered: ev.detail.plyr.buffered});
+        updatePlayer : function(ev){
+            this.socket.emit('player', this.roomId, { time: ev.timeStamp, type: ev.type, plyr : ev.detail.plyr.timers, currentTime : ev.detail.plyr.currentTime, buffered: ev.detail.plyr.buffered});
+        },
+        notificate : function(){
+            this.notificationObject = {type : 'warning', closeButton : true, bodyMessage : "Connecting...", duration : -1, htmlTags: false, customClass: ''};
         }
     },
     created (){ 
@@ -314,7 +312,6 @@ export default {
         this.socket = io.connect("http://localhost:3300", {
             reconnection : false
         });
-        //var data = this.isRoomExist();
         if(this.roomCreate === true){
             this.userPerm = 0;
             this.create_room(this.roomId);
@@ -323,32 +320,29 @@ export default {
         }
     },
     mounted(){
+        this.notificate();
+
         this.socket.on('connect', () => {
             this.socketClientId = this.socket.id;
-            this.socket.emit('latency', Date.now(), function(startTime) {
-                var latency = Date.now() - startTime;
-                console.log(latency);
-            });
+            setTimeout(function (){
+                this.isPageLoading = false;
+                this.notificationTrigger = 'connect';
+            }.bind(this), 5000)
         });
 
         this.socket.on('disconnect', (reason) => {
             this.$router.push({name: 'home'});
-            alert('You are Kicked! ' + reason);
+            console.log('Disconnected! '+ reason);
         });
 
         this.socket.on('users update', data => {
-            //console.log(data);
-            if(this.userPerm !==0){
-                this.userPerm = data.users[this.socketClientId].permission_level; 
-            }
-            this.userList = data.users;
+            this.userList = data;
         });
 
         //this.socket.on('error')
 
         this.socket.on('playlist update', data =>{
-            //console.log(data);
-            this.videoList = data.playlist;
+            this.videoList = data.list;
 
             if((data.playing.url != this.playingVideo.url) && data.playing.url != null){
                 this.addToPlaylist(data.playing);
@@ -366,8 +360,7 @@ export default {
             }
         });
 
-        this.socket.on('video update', data =>{
-            console.log(data);
+        this.socket.on('player', data =>{
             if(data.type === 'play'){
                 this.player.play();
             }else if(data.type === 'pause'){
@@ -380,22 +373,20 @@ export default {
 
         if(this.userPerm === 0){
             this.player.on('play', event =>{
-                console.log(event);
-                this.sendVideoEvent(event);
+                this.updatePlayer(event);
             });
 
             this.player.on('pause', event =>{
-                console.log(event);
-                this.sendVideoEvent(event);
+                this.updatePlayer(event);
             });
 
             this.player.on('seeked', event =>{
-                this.sendVideoEvent(event);
+                this.updatePlayer(event);
             });
 
             this.player.on('seeking', event =>{
                 if(this.player.paused){
-                    this.sendVideoEvent(event);
+                    this.updatePlayer(event);
                 }
             });
         }
@@ -418,14 +409,6 @@ export default {
         border-right: 1px solid #dbdbdb;
         height: 250px;
         overflow: auto;
-    }
-
-    .users{
-        margin-top: 20px;
-    }
-
-    .custom1{
-        border-top: 1px solid #dbdbdb;
     }
 
     .empty-plist{
@@ -506,7 +489,7 @@ export default {
         position: relative;
         background-color: #dbdbdb;
         width: 64px;
-        height: 64px;
+        height: 48px;
     }
 
     .title-skeleton{
