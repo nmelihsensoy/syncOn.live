@@ -64,7 +64,7 @@
                 </div>
                 <div v-show="this.pageLoading !== true" class="navbar-item">
                     <div class="buttons">
-                    <a @click="inviteFriend" class="button is-info">
+                    <a @click="copyToClipboard(roomId)" class="button is-info">
                         <strong>Invite Friend</strong>
                     </a>
                     <a @click="sendMenu('exit')" class="button is-danger">

@@ -26,9 +26,9 @@
                     <div class="skaleton-parent" @mouseover="playerControlsToggle(true)" @mouseleave="playerControlsToggle(false)" @dblclick="playerToggleFS">
                         <div v-show="this.isPageLoading === true" class="skaleton-child"></div>
                         <div :class="{'main-video' : userPerm !== 0}">
-                            <vue-plyr :options="options_last" ref="plyr">
-                                <video poster="https://cdn.pixabay.com/photo/2018/01/26/07/05/retro-3107950_960_720.png" src="video.mp4">
-                                    <source src="../assets/blank.mp4" type="video/mp4" size="720">
+                            <vue-plyr :options="plyr_options" ref="plyr">
+                                <video :poster="empty_plyr_poster" src="video.mp4">
+                                    <source :src="plyr_options.blankVideo" type="video/mp4" size="720">
                                 </video>
                             </vue-plyr>
                         </div>
@@ -72,7 +72,6 @@
                                     </div>
                                     <div class="media-content">
                                         <p class="title is-6">{{ video.title }}</p>
-            
                                     </div>
                                 </div>
                             </a>
@@ -135,6 +134,12 @@ const axios = require('axios');
 const YOUTUBE_API_KEY = ApiKeys.youtube;
 const SOCKET_IP = "http://localhost:3300";
 const EMPTY_PLAYING_VIDEO = {url: 0};
+const PLYR_OPTIONS = {
+                            invertTime : false,
+                            blankVideo : '../assets/blank.mp4',
+                            youtube  : { noCookie: false, rel: 0, showinfo: 0, iv_load_policy: 3, modestbranding: 1 }
+                        };
+const PLYR_EMPTY_POSTER = 'https://cdn.pixabay.com/photo/2018/01/26/07/05/retro-3107950_960_720.png';
 
 export default {
     name: 'room',
@@ -169,11 +174,8 @@ export default {
             notificationObject : {},
             nickName : UserNames.getRandomName(),
             userList : [],
-            options_last : {
-                invertTime : false,
-                blankVideo : '../assets/blank.mp4',
-                youtube  : { noCookie: false, rel: 0, showinfo: 0, iv_load_policy: 3, modestbranding: 1 }
-            },
+            plyr_options : PLYR_OPTIONS, 
+            empty_plyr_poster : PLYR_EMPTY_POSTER,
             userPerm : 2,
             isModalActive : false,
             isPageLoading : true,
@@ -193,10 +195,10 @@ export default {
             this.player.source = {
                 type: 'video',
                 title: 'Playlist Empty',
-                poster : 'https://cdn.pixabay.com/photo/2018/01/26/07/05/retro-3107950_960_720.png',
+                poster : PLYR_EMPTY_POSTER,
                 sources: [
                     {
-                        src: '../assets/blank.mp4',
+                        src: PLYR_OPTIONS.blankVideo,
                         type: 'video/mp4',
                         size: 720,
                     }
@@ -316,6 +318,7 @@ export default {
             this.player.fullscreen.toggle();
         },
         updatePlayer : function(ev){
+            console.log(ev.type);
             this.socket.emit('player', this.roomId, { time: ev.timeStamp, type: ev.type, plyr : ev.detail.plyr.timers, currentTime : ev.detail.plyr.currentTime, buffered: ev.detail.plyr.buffered});
         },
         notificate : function(){
@@ -325,12 +328,21 @@ export default {
             if(opt === 'exit'){
                 this.leave_room();
             }
+        },
+        closePageDialog : function(){
+            return true;
         }
     },
     created (){ 
         this.socket = io.connect(SOCKET_IP, {
             reconnection : false
         });
+
+        if(this.roomCreate){
+            this.userPerm = 0;
+        };
+
+        //window.onbeforeunload = this.closePageDialog;
     },
     mounted(){
         this.notificate();
