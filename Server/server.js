@@ -60,18 +60,22 @@ function createRoom(socket, hostObj, roomObj){
 
 function joinRoom(socket, roomId, clientObj){
     clientObj = clientInit(socket, clientObj);
-    clientObj.roomId = roomId;
-    socket.join(roomId);
 
-    clients[socket.id] = clientObj;
-    rooms[roomId].users[socket.id] = clientObj;
+        if(clientObj !== null && rooms.hasOwnProperty(roomId)){
+            clientObj.roomId = roomId;
+            socket.join(roomId);
 
-    console.log(JSON.stringify(clientObj));
-    console.log('ROOM : '+roomId)
+            clients[socket.id] = clientObj;
+            rooms[roomId].users[socket.id] = clientObj;
 
-    roomUsersUpdate(roomId);
-    io.to(socket.id).emit('playlist update', rooms[roomId].playlist);
-    console.log(clientObj.clientId + " joined a room "+roomId);
+            roomUsersUpdate(roomId);
+            if(rooms[roomId].playlist.hasOwnProperty('playing')){
+                io.to(socket.id).emit('playlist update', rooms[roomId].playlist);
+            }
+            console.log(clientObj.clientId + " joined a room "+roomId);
+        }else{
+            io.sockets.connected[socket.id].disconnect();
+        }
 }
 
 function giveAdminPerm(socket, roomId, userId){

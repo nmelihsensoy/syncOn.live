@@ -63,7 +63,6 @@
                     </div>
                 </div>
                 <div v-show="this.pageLoading !== true" class="navbar-item">
-                    <input v-show="false" type="text" :value="roomId" id="copyElement">
                     <div class="buttons">
                     <a @click="inviteFriend" class="button is-info">
                         <strong>Invite Friend</strong>
@@ -100,7 +99,7 @@ export default {
         sendUrl : function(){
             var q = url.parse(this.video_url, true);
 
-            if(q.host != null && ((q.host === 'www.youtube.com') && (q.pathname === '/watch') || (q.host === 'youtube.com') && (q.pathname === '/watch'))){
+            if(q.host != null && ((q.host === 'www.youtube.com') && (q.pathname === '/watch') || (q.host === 'youtube.com') && (q.pathname === '/watch') || (q.host === 'youtu.be'))){
                 this.urlValid = true;
                 this.$emit('urlSended', this.video_url);
                 this.video_url = null;
@@ -113,14 +112,14 @@ export default {
         sendMenu : function(opt){
             this.$emit('menuSended', opt);
         },
-        inviteFriend : function(){
-            var copyText = document.getElementById("copyElement");
-
-            /* Select the text field */
-            copyText.select();
-
-            /* Copy the text inside the text field */
+        copyToClipboard : function(value){
+            var tempInput = document.createElement("input");
+            tempInput.style = "position: absolute; left: -1000px; top: -1000px";
+            tempInput.value = value;
+            document.body.appendChild(tempInput);
+            tempInput.select();
             document.execCommand("copy");
+            document.body.removeChild(tempInput);
         }
     }
 }

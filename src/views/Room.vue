@@ -81,7 +81,7 @@
                             <button class="button is-link is-outlined" @click="clearPlaylist">
                             clear playlist
                             </button>
-                            <button class="button is-danger is-outlined" @click="deleteFromPlaylist">
+                            <button class="button is-danger is-outlined is-hidden" @click="deleteFromPlaylist">
                             delete selected
                             </button>
                         </div>
@@ -133,10 +133,25 @@ const getVideoId = require('get-video-id');
 const axios = require('axios');
 
 const YOUTUBE_API_KEY = ApiKeys.youtube;
-const EMPTY_PLAYING_VIDEO = {url: null};
+const SOCKET_IP = "http://localhost:3300";
+const EMPTY_PLAYING_VIDEO = {url: 0};
 
 export default {
     name: 'room',
+    beforeRouteLeave (to, from, next) {
+        var answer = true;
+
+        if(this.socket.connected && this.userPerm === 0){
+            answer = window.confirm('Do you really want to leave the room? room will be destroyed')
+        }
+
+        if(answer){
+            this.socket.disconnect();
+            next()
+        } else {
+            next(false)
+        }
+    },
     components:{
         NavBar,
         Notification,
@@ -313,7 +328,7 @@ export default {
         }
     },
     created (){ 
-        this.socket = io.connect("http://10.8.0.2:3300", {
+        this.socket = io.connect(SOCKET_IP, {
             reconnection : false
         });
     },
@@ -340,19 +355,19 @@ export default {
         });
 
         this.socket.on('users update', data => {
+            this.userPerm = data[this.socketClientId].permLevel;
             this.userList = data;
         });
 
-        //this.socket.on('error')
 
         this.socket.on('playlist update', data =>{
             if(data.hasOwnProperty('list')){
                 this.videoList = data.list;
             }
 
-            if((data.playing.url != this.playingVideo.url) && data.playing.url != null){
+            if((data.playing.url !== this.playingVideo.url) && data.playing.url !== 0){
                 this.addToPlaylist(data.playing);
-            }else if((data.playing.url != this.playingVideo.url) && data.playing.url === null){ 
+            }else if((data.playing.url !== this.playingVideo.url) && data.playing.url === 0){ 
                 this.clearPlayer();
             }
             if(data.hasOwnProperty('playing')){
