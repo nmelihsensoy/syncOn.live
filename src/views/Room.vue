@@ -59,7 +59,7 @@
                                 <div class="media-left">
                                     <div class="skaleton-parent"><div class="skaleton-child"></div><span class="image-skeleton"></span></div>
                                 </div>
-                                <div class="skaleton-parent full-wh"><div class="skaleton-child"></div><span class="title-skeleton"></span></div>
+                                <div class="skaleton-parent full-wh"><div class="skaleton-child"></div><span class="title-skeleton">a</span></div>
                             </a>
                         </div>
                         <div v-show="this.videoList.length && this.isPageLoading !== true" class="panel-main-scroll">
@@ -278,7 +278,7 @@ export default {
                 }
             }
         },
-        isInPlaylist : function(video){
+        isInPlaylist : function(){
             //for(var i=0; i<this.videoList.length; i++){
             //    if(video === this.videoList[i].url){
             //        return true;
@@ -340,7 +340,7 @@ export default {
 
         if(this.roomCreate){
             this.userPerm = 0;
-        };
+        }
 
         //window.onbeforeunload = this.closePageDialog;
     },
@@ -477,6 +477,7 @@ export default {
     }
 
     .skaleton-parent > .skaleton-child{
+        display: flex;
         position: absolute;
         width: 100%;
         height : 100%;
@@ -513,6 +514,7 @@ export default {
     }
 
     .image-skeleton{
+        display: block;
         position: relative;
         background-color: #dbdbdb;
         width: 64px;
@@ -520,6 +522,7 @@ export default {
     }
 
     .title-skeleton{
+        display: inline-block;
         position: relative;
         background-color: #dbdbdb;
         height: 100%;
@@ -533,6 +536,10 @@ export default {
 
     .user-title-skaleton{
         width: 40% !important;
+    }
+
+    .skaleton-parent > span{
+        display: inline-flex !important;
     }
 
 </style>
