@@ -44,11 +44,13 @@
                 <div class="columns is-centered" >
                     <div class="column is-one-quarter">
                         <a @click="createRoom" class="box has-text-centered">
+                            <span class="lnr lnr-magic-wand"></span>
                             Create Room
                         </a>
                     </div>
                     <div class="column is-one-quarter">
                         <a class="box has-text-centered" @click="join_room">
+                            <span class="lnr lnr-enter"></span>
                             Join Room
                         </a>
                     </div>

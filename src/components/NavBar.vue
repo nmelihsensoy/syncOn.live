@@ -15,10 +15,10 @@
         <div id="navbarBasicExample" class="navbar-menu">
             <div class="navbar-start">
             <router-link :to="{ name: 'home' }" class="navbar-item" exact>
-                Home
+                <span class="icon lnr lnr-home"></span> <span>Home</span>
             </router-link>
 
-            <router-link :to="{ name: 'about' }" class="navbar-item">
+            <router-link :to="{ name: 'about' }" class="navbar-item is-hidden">
                 About
             </router-link>
             </div>
@@ -34,7 +34,7 @@
                     </div>
                     <div class="control">
                         <a class="button is-dark" @click="sendUrl">
-                        Add
+                            +
                         </a>
                     </div>
                 </div>
@@ -43,10 +43,10 @@
                 <div class="navbar-item">
                     <div class="buttons">
                     <a @click="sendMenu('create')" class="button is-primary">
-                        <strong>Create Room</strong>
+                        <span class="icon lnr lnr-magic-wand"></span><strong> Create Room</strong>
                     </a>
                     <a @click="sendMenu('join')" class="button is-link">
-                        <strong >Join Room</strong>
+                        <span class="icon lnr lnr-enter"></span><strong >Join Room</strong>
                     </a>
                     </div>
                 </div>
@@ -65,11 +65,11 @@
                 <div v-show="this.pageLoading !== true" class="navbar-item">
                     <div class="buttons">
                     <a @click="copyToClipboard(roomId)" class="button is-info">
-                        <strong>Invite Friend</strong>
+                        <span class="icon lnr lnr-link"></span> <strong> <span>Invite Friend</span></strong>
                     </a>
                     <a @click="sendMenu('exit')" class="button is-danger">
-                        <strong v-show="this.userPermLevel === 0">Close Room</strong>
-                        <strong v-show="this.userPermLevel !== 0">Exit Room</strong>
+                        <strong v-show="this.userPermLevel === 0"><span class="icon lnr lnr-exit"></span> <span>Close Room</span></strong>
+                        <strong v-show="this.userPermLevel !== 0"><span class="icon lnr lnr-exit"></span> <span>Exit Room</span></strong>
                     </a>
                     </div>
                 </div>
@@ -113,6 +113,7 @@ export default {
             this.$emit('menuSended', opt);
         },
         copyToClipboard : function(value){
+            this.$emit('invite_f');
             var tempInput = document.createElement("input");
             tempInput.style = "position: absolute; left: -1000px; top: -1000px";
             tempInput.value = value;

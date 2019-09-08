@@ -17,7 +17,7 @@
         </div>
         </template>
     </Modal>
-    <NavBar @urlSended = "urlSended" :userPermLevel="userPerm" :pageLoading="isPageLoading" @menuSended="menuSended"></NavBar>
+    <NavBar @invite_f = "friendInvited" @urlSended = "urlSended" :userPermLevel="userPerm" :pageLoading="isPageLoading" @menuSended="menuSended"></NavBar>
     <Notification v-bind:notify="this.notificationObject" v-bind:trigger="this.notificationTrigger"></Notification>
     <div class="room">
         <div class="container">
@@ -37,10 +37,10 @@
                 <div class="column">
                     <nav class="panel">
                         <p class="panel-heading">
-                            Playlist
+                            <span class="icon lnr lnr-list"></span>  Playlist
                         </p>
                         <div v-show="!this.videoList.length && this.isPageLoading !== true" class="columns empty-plist is-gapless has-text-centered is-vcentered is-centered">
-                            Empty
+                            <span class="icon lnr lnr-layers"></span>
                         </div>
                         <div v-show="this.isPageLoading === true" class="panel-main-scroll" style="border-bottom: 1px solid #dbdbdb">
                              <a class="panel-block">
@@ -87,7 +87,7 @@
                     </nav>
                     <nav class="panel">
                         <p class="panel-heading">
-                            Users
+                            <span class="icon lnr lnr-users"></span> Users
                         </p>
                         <div v-show="this.isPageLoading === true">
                             <a class="panel-block user-block is-block">
@@ -136,10 +136,10 @@ const SOCKET_IP = "http://localhost:3300";
 const EMPTY_PLAYING_VIDEO = {url: 0};
 const PLYR_OPTIONS = {
                             invertTime : false,
-                            blankVideo : '../assets/blank.mp4',
+                            blankVideo : 'blank.mp4',
                             youtube  : { noCookie: false, rel: 0, showinfo: 0, iv_load_policy: 3, modestbranding: 1 }
                         };
-const PLYR_EMPTY_POSTER = 'https://cdn.pixabay.com/photo/2018/01/26/07/05/retro-3107950_960_720.png';
+const PLYR_EMPTY_POSTER = '';
 
 export default {
     name: 'room',
@@ -331,6 +331,9 @@ export default {
         },
         closePageDialog : function(){
             return true;
+        },
+        friendInvited : function(){
+            this.notificationObject = {type : 'success', closeButton : true, bodyMessage : 'Room Id Copied!', duration : 1000, htmlTags: false, customClass: ''};
         }
     },
     created (){ 
