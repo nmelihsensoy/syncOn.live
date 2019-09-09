@@ -1,8 +1,17 @@
-const server = require('http').createServer()
-const io = require('socket.io')(server)
+const express = require('express');
+const app = express();
+const server = require('http').createServer(app);
+const io = require('socket.io')(server);
 
 const rooms = {};
 const clients = {};
+
+app.use(express.static(__dirname + '/../dist'));
+app.get('/', function(req, res) {
+    res.sendFile(__dirname + '/../dist/index.html');
+});
+
+server.listen(80);
 
 function clientInit(socket, clientObj){
     var clientId = socket.id;
@@ -197,5 +206,3 @@ io.on('connection', function (socket){
     });
 
 });
-
-server.listen(3300)

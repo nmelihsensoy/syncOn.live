@@ -3,7 +3,7 @@
             <div class="container">
                 <div class="content has-text-centered">
                     <p>
-                        <strong>Youtube Sync</strong> by <a href="#">Nuri Melih Sensoy</a>
+                        <strong>SyncOn</strong> by <a href="#">Nuri Melih Sensoy</a>
                     </p>
                 </div>
             </div>

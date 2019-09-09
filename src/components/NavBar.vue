@@ -2,7 +2,7 @@
     <nav class="navbar is-light" role="navigation" aria-label="main navigation">
         <div class="navbar-brand">
             <a class="navbar-item">
-            <h3 class="title is-3">Youtube-Sync</h3>
+            <h3 class="title is-3">SyncOn</h3>
             </a>
 
             <a role="button" class="navbar-burger burger" aria-label="menu" aria-expanded="false" data-target="navbarBasicExample">
@@ -34,7 +34,7 @@
                     </div>
                     <div class="control">
                         <a class="button is-dark" @click="sendUrl">
-                            +
+                            <span>+</span>
                         </a>
                     </div>
                 </div>

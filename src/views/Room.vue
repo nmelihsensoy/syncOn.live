@@ -40,7 +40,7 @@
                             <span class="icon lnr lnr-list"></span>  Playlist
                         </p>
                         <div v-show="!this.videoList.length && this.isPageLoading !== true" class="columns empty-plist is-gapless has-text-centered is-vcentered is-centered">
-                            <span class="icon lnr lnr-layers"></span>
+                            <span class="icon lnr lnr-film-play"></span><span>No Video</span>
                         </div>
                         <div v-show="this.isPageLoading === true" class="panel-main-scroll" style="border-bottom: 1px solid #dbdbdb">
                              <a class="panel-block">
@@ -132,12 +132,12 @@ const getVideoId = require('get-video-id');
 const axios = require('axios');
 
 const YOUTUBE_API_KEY = ApiKeys.youtube;
-const SOCKET_IP = "http://localhost:3300";
+const SOCKET_IP = "http://localhost";
 const EMPTY_PLAYING_VIDEO = {url: 0};
 const PLYR_OPTIONS = {
                             invertTime : false,
                             blankVideo : 'blank.mp4',
-                            youtube  : { noCookie: false, rel: 0, showinfo: 0, iv_load_policy: 3, modestbranding: 1 }
+                            youtube  : { noCookie: true, rel: 0, showinfo: 0, iv_load_policy: 3, modestbranding: 1 }
                         };
 const PLYR_EMPTY_POSTER = '';
 
