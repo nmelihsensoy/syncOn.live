@@ -6,7 +6,8 @@
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint",
-    "start": "node Server/server.js"
+    "start": "node Server/server.js",
+    "test": "test --passWithNoTests"
   },
   "dependencies": {
     "animate.css": "^3.7.2",
