@@ -5,9 +5,10 @@ cache:
   - node_modules
 deploy:
   provider: heroku
+  local_dir: dist/
+  skip_cleanup: true
   api_key:
     secure: ZU2QX+SqVxuIxUkfJVGsdW5jLM6AlhbCXIUounXfFvmayw5MUxYu0omHEv2skJF3rw8YQGlb2NOy+THtq8VkHk6DFhDeFuaW/TsTJQEupmashAPdVcREjccvByb1vp/eWQy8V0e1FJn24RDVYXO7+zx1YcWaJomLYCxjNbzuj25lScA/zo3miF7UtSgAWhORwV8ss1OEx5nHWNdzaj1x88eQ6X/+yH9jKfLr1EB1PHSwy9Lf/d7GVGC/cbsFPlCqFHY5vkxdIWK74HK1FJVViLuBSDyRkPFagQBPPnldwYzHVMsSGpz6uv6nswFBX9q42Clhzmrzx4R+rAETEnowWkP2j2kdtPgaJx93t8tD1HZA1TWfaJMtBAgxjnXaJAsnSQ/xAVVbnJms83wxqjKR5fg850qTJk3yaYZHBno53ELMI8OdX4GPVq82H2MjFy4l2zZHYPxWBfVALygsetQKUtyxOHxroJLajyznDi60t1KuvSG2grExT41xWuQ/eeXLNsHiI/iHK14Qq9/bFqrLgV87/DsOyQtgkx1FPFe3jziDvr9rZxYzhYHghGHCQmgMs2RzL58QNq9m5jjzAneYoUJroB6Pm7sNaoz5aWrErZcqiYH9aKuyIR5u0qFcIcnz73jxoYtVhWwZPwZYQkPYyJpW3nlbyS3jVFVNptxIF+U=
   app: synconlive
   on:
     repo: nmelihsensoy/syncOn.live
-  skip_cleanup: true
