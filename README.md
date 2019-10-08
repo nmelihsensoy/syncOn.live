@@ -1,29 +1,34 @@
-# youtube_sync
+# SyncOn.live
 
 ## Project setup
+
+#Youtube Data Api
+If you are using Heroku add your api key to the Config Vars with YOUTUBE_API name. If you are not enter your api key into api.keys.js.
+
+#Build VueJs Front-End
+
 ```
 yarn install
-```
-
-### Compiles and hot-reloads for development
-```
-yarn run serve
-```
-
-### Compiles and minifies for production
-```
 yarn run build
 ```
 
-### Run your tests
+#Build Server
+
 ```
-yarn run test
+cd Server
+npm install
 ```
 
-### Lints and fixes files
+#Run Without Process Manager
+
 ```
-yarn run lint
+sudo node server.js
 ```
 
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+#Run With PM2
+
+```
+npm install pm2 -g 
+sudo pm2 start server.js
+pm2 list
+```
