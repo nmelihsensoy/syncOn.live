@@ -125,13 +125,11 @@ import NavBar from '../components/NavBar';
 import Notification from '../components/Notification';
 import UserListItem from '../components/UserListItem';
 import Modal from '../components/Modal';
-import ApiKeys from '../../api-keys';
 import UserNames from '../assets/usernames';
 
 const getVideoId = require('get-video-id');
 const axios = require('axios');
 
-const YOUTUBE_API_KEY = ApiKeys.youtube;
 const SOCKET_IP = "http://localhost";
 const EMPTY_PLAYING_VIDEO = {url: 0};
 const PLYR_OPTIONS = {
@@ -228,9 +226,9 @@ export default {
         fetchVideoInfo : function(videoUrl){
             var video_id = getVideoId(videoUrl).id;
             axios
-                .get('https://www.googleapis.com/youtube/v3/videos?id='+ video_id +'&key='+ YOUTUBE_API_KEY +'&part=snippet,contentDetails,statistics,status')
+                .get('https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v='+ video_id + '&format=json')
                 .then(response => {
-                    this.videoList.push({url: videoUrl, v_id: video_id, title: response.data.items[0].snippet.title, thumbnail:response.data.items[0].snippet.thumbnails.default.url})
+                    this.videoList.push({url: videoUrl, v_id: video_id, title: response.data.title, thumbnail:response.data.thumbnail_url})
                     //this.notificationObject = {type : 'warning', closeButton : true, bodyMessage : response.data.items[0].snippet.title, duration : -1, htmlTags: false, customClass: ''};
                     //playlist has a only 1 item load to player
                     if(this.videoList.length && this.videoList.length === 1){

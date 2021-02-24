@@ -2,9 +2,6 @@
 
 ## Project setup
 
-### Youtube Data Api
-If you are using Heroku add your api key to the Config Vars with YOUTUBE_API name. If you are not enter your api key into api.keys.js.
-
 ### Build VueJs Front-End
 
 ```
