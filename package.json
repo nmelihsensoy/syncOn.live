@@ -4,8 +4,7 @@
   "private": true,
   "scripts": {
     "serve": "vue-cli-service serve",
-    "build": "vue-cli-service build",
-    "heroku-postbuild": "cd Server && npm install",
+    "build": "vue-cli-service build && cd Server && npm install",
     "lint": "vue-cli-service lint",
     "start": "node Server/server.js",
     "test": "test --passWithNoTests"
