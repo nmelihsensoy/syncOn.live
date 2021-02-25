@@ -9,7 +9,8 @@
   "scripts": {
     "test": "test --passWithNoTests",
     "start": "node server.js",
-    "build": "npm install && cd Front-End && yarn install && yarn run build"
+    "build": "npm install",
+    "heroku-postbuild": "cd Front-End && yarn install && yarn run build"
   },
   "author": "nmelihsensoy",
   "license": "ISC",
