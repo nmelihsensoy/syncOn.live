@@ -2,18 +2,10 @@
 
 ## Project setup
 
-### Build VueJs Front-End
+### Build
 
 ```
-yarn install
-yarn run build
-```
-
-### Build Server
-
-```
-cd Server
-npm install
+npm run build
 ```
 
 ### Run Without Process Manager

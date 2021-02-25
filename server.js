@@ -6,9 +6,9 @@ const io = require('socket.io')(server);
 const rooms = {};
 const clients = {};
 
-app.use(express.static(__dirname + '/../dist'));
+app.use(express.static(__dirname + '/Front-End/dist'));
 app.get('/', function(req, res) {
-    res.sendFile(__dirname + '/../dist/index.html');
+    res.sendFile(__dirname + '/Front-End/dist/index.html');
 });
 
 server.listen(process.env.PORT || 80);
