@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "",
   "main": "server.js",
+  "engines": {
+    "yarn": "1.22.10"
+  },
   "scripts": {
     "test": "test --passWithNoTests",
     "start": "node server.js",
