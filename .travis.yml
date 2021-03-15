@@ -10,7 +10,6 @@ before_install:
   - npm install
   - yarn install
 script:
-  - cd ./Front-End
   - yarn run build
 deploy:
   provider: heroku
