@@ -5,17 +5,17 @@ cache:
   - node_modules
   - Front-End/node_modules
 before_install:
-  - npm install
-  - cd ./Front-End
-  - npm install
-  - yarn install
+- npm install
+- cd ./Front-End
+- npm install
+- yarn install
 script:
-  - yarn run build
+- yarn run build
 deploy:
   provider: heroku
   skip_cleanup: true
   api_key:
-    secure: jlFi8AQBEvPFi5fSWPZXTzfGfsEl2XPfgma9pXqY1BCcLblCcUFE7Q4Z3hZlkB6QUn/qNbCKcct6FecrcZjQyjUQdYjK2TwXNAYliNG1svxF7PugrQ2HyERlMyPHA0BMdoBTSFY9dVXyhrBwaKVllC6kLMudDjy3EGt2jvgjSKD6NDXNueVUXhO32QLvDJ8d2TKeAbE0ntyHE8PHol+YugOMUxdzenBwaL663ur/QIJPUkPg3P8r9kktHws1bJKT78uWKxBi+n7I0Xwpwc9D4XdPZwjBChwe88iDOIjD9zG/UDCgbkyzgJ4pXbT8SSqfB1NW7bFsOdpnxp/wiCYqSKZIubs6EExy8o+1oppeE3AzED5JRW+5shC885pnenUvCfVq0ZLuOJBLYINFKpQvpZ1iEU3zBibvQlf1nYQw8bdaZ1PaKe62wiAufYtfkVsUB7lAGM+KtGPsE0p39+s3zohVE1+WQegsovX+VqZgdTiZkY2FN6xFIZrWcgYGeB1dj3vkVaJYZGCh5Tdgd2+TxZt/fyQ+gjbMpyVRfWgu5QBMn8VvYlvL6hPHJG78jkLrDNEiJSf9vDIUoBQuS3GPnoCUKfCbfaGhopnfm0pEwxODGcEqu89PL01mz0A2fs9xm+kB7Wm2UBUiFTCGIbKZIQhOW6mkLiQie9v9L9xzxfQ=
+    secure: jDD3+sJpzX9xCIgTo/0EzgLu+0sskjsFXv0O48QtxMgR8l+j3zMIu8FCPA2Fdp63i0eySBz5VwEJm9VnJuQM7NPVOVB49L7gL9qEYmYtyNEt3bfHw9drpZgpcoFTQgsf0UBuewDO2HvYydiK9mMHwKRXM+hDMEpd8ER9wDNWnK09P38ZoBNLMC/qzanGO/ruyEWz3XJsuufqJn+Iz19I7Epu/viI1dIO+as1vU/CPgnelIWFRpHSB8A4BsBxE4vQqGXWUTJfqQKAadbOXi+hUVpqqX60meOxq9AoGybns4n34yugxuDS5JZqjYxvnxq4UCPOWrBgpK/JnKdjxMIWbSF1aR8XfXhxyyDAc4JhfP0eJqIOOhIXZG14AAOe9O5OsTcWR84WzHGJkIKCIutE5wj5PudEYE7mkLdwLvBWl606N4EebscVkXAH+oI1ayruYuIOewoZBFiSl9jP33/Pl7gWfVBNsNXr6CvpqCyLH7g98UtB5MRHScA1RI9bOymSNjTZK6IAqzi+B64XcI7cFZukD4O6kZDTjRYkU65vgkFYxXLshl2H9gjLfeXPdbqXo0ZKDPP5JKfAg0IEW9VlbD3TykCFjQZHkgAsE3ot9MQUDHHR9tNWAQ484jRYuebQi2/flmltfC9OmYVJjQnpjubjKznrU7U9bzC5J5JuaWU=
   app: synconlive
   on:
     repo: nmelihsensoy/syncOn.live
