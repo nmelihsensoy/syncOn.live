@@ -4,10 +4,17 @@ cache:
   directories:
   - node_modules
   - Front-End/node_modules
+before_install:
+  - npm install
+  - cd ./Front-End
+  - npm install
+  - yarn install
+script:
+  - cd ./Front-End
+  - yarn run build
 deploy:
   provider: heroku
-  local_dir: Front-End/dist/
-  skip_cleanup: true
+  skip_cleanup: false
   api_key:
     secure: jlFi8AQBEvPFi5fSWPZXTzfGfsEl2XPfgma9pXqY1BCcLblCcUFE7Q4Z3hZlkB6QUn/qNbCKcct6FecrcZjQyjUQdYjK2TwXNAYliNG1svxF7PugrQ2HyERlMyPHA0BMdoBTSFY9dVXyhrBwaKVllC6kLMudDjy3EGt2jvgjSKD6NDXNueVUXhO32QLvDJ8d2TKeAbE0ntyHE8PHol+YugOMUxdzenBwaL663ur/QIJPUkPg3P8r9kktHws1bJKT78uWKxBi+n7I0Xwpwc9D4XdPZwjBChwe88iDOIjD9zG/UDCgbkyzgJ4pXbT8SSqfB1NW7bFsOdpnxp/wiCYqSKZIubs6EExy8o+1oppeE3AzED5JRW+5shC885pnenUvCfVq0ZLuOJBLYINFKpQvpZ1iEU3zBibvQlf1nYQw8bdaZ1PaKe62wiAufYtfkVsUB7lAGM+KtGPsE0p39+s3zohVE1+WQegsovX+VqZgdTiZkY2FN6xFIZrWcgYGeB1dj3vkVaJYZGCh5Tdgd2+TxZt/fyQ+gjbMpyVRfWgu5QBMn8VvYlvL6hPHJG78jkLrDNEiJSf9vDIUoBQuS3GPnoCUKfCbfaGhopnfm0pEwxODGcEqu89PL01mz0A2fs9xm+kB7Wm2UBUiFTCGIbKZIQhOW6mkLiQie9v9L9xzxfQ=
   app: synconlive
