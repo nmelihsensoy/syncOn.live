@@ -11,6 +11,7 @@ before_install:
   - yarn install
 script:
   - yarn run build
+  - cd ../
 deploy:
   provider: heroku
   skip_cleanup: false
