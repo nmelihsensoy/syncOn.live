@@ -8,7 +8,7 @@ before_install:
 - npm install
 - cd ./Front-End
 - npm install
-- rm package.json
+- rm yarn.lock
 - yarn install
 script:
 - yarn run build
