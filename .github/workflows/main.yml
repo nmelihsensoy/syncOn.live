@@ -22,11 +22,14 @@ jobs:
       - run: echo "🍏 This job's status is ${{ job.status }}."
       - run: npm install
       - run: npm run build
-      - run: cd ./Front-End
+      - run:
+        working-directory: ./Front-End
       - run: npm install
       - run: yarn install
       - run: yarn run build
       - run: echo "🍏 This job's status is ${{ job.status }}."
+      - run:
+        working-directory: ../
       - uses: akhileshns/heroku-deploy@v3.12.12 # This is the action
         with:
           heroku_api_key: ${{secrets.HEROKU_API_KEY}}
