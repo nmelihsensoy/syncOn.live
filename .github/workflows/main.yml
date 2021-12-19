@@ -24,6 +24,8 @@ jobs:
       - run: npm run build
       - run: |
         working-directory: ./Front-End
+      - run: |
+          ls
       - run: npm install
       - run: yarn install
       - run: yarn run build
