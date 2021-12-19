@@ -22,17 +22,18 @@ jobs:
           ls ${{ github.workspace }}
 
       - name: Build Server
-        working-directory: ./
       - run: npm install
       - run: npm run build
-
+        working-directory: ./
+      
       - name: Build Front-End
-        working-directory: ./Front-End
       - run: yarn install
       - run: yarn run build
+        working-directory: ./Front-End
 
-      - name: Deploy to Heroku  
-        working-directory: ../
+      - name: Deploy to Heroku
+        run: |
+          ls ${{ github.workspace }}
       - uses: akhileshns/heroku-deploy@v3.12.12
         with:
           heroku_api_key: ${{secrets.HEROKU_API_KEY}}
