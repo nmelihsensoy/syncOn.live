@@ -20,6 +20,7 @@ jobs:
         run: |
           ls ${{ github.workspace }}
       - run: echo "🍏 This job's status is ${{ job.status }}."
+        working-directory: ./
       - run: npm install
       - run: npm run build
         working-directory: ./Front-End
