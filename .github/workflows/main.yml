@@ -21,11 +21,11 @@ jobs:
           ls ${{ github.workspace }}
       - run: echo "🍏 This job's status is ${{ job.status }}."
       - run: npm install
-      - run: npm build
+      - run: npm run build
       - run: cd ./Front-End
       - run: npm install
       - run: yarn install
-      - run: yarn build
+      - run: yarn run build
       - run: echo "🍏 This job's status is ${{ job.status }}."
       - uses: akhileshns/heroku-deploy@v3.12.12 # This is the action
         with:
