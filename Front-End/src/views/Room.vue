@@ -127,7 +127,7 @@ import UserListItem from '../components/UserListItem';
 import Modal from '../components/Modal';
 import UserNames from '../assets/usernames';
 
-const getVideoId = require('get-video-id');
+import getVideoId from 'get-video-id';
 const axios = require('axios');
 
 const SOCKET_IP = "http://localhost";
