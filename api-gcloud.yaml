@@ -1,0 +1,10 @@
+runtime: nodejs18
+# free limits. check https://cloud.google.com/free/docs/free-cloud-features#free-tier-usage-limits
+env: standard
+instance_class: F1
+automatic_scaling:  
+  max_instances: 1 
+network:
+   session_affinity: true # for socket connection. requires flex environment but it's working?
+env_variables:
+  PORT: '8080'
