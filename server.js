@@ -11,7 +11,7 @@ app.get('/', function(req, res) {
     res.sendFile(__dirname + '/Front-End/dist/index.html');
 });
 
-server.listen(process.env.PORT || 80);
+server.listen(process.env.PORT || 5000);
 
 function clientInit(socket, clientObj){
     var clientId = socket.id;
