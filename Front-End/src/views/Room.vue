@@ -130,7 +130,7 @@ import UserNames from '../assets/usernames';
 import getVideoId from 'get-video-id';
 const axios = require('axios');
 
-const SOCKET_IP = ":5000";
+const SOCKET_IP = "[https://synconlive-371201.ey.r.appspot.com";
 const EMPTY_PLAYING_VIDEO = {url: 0};
 const PLYR_OPTIONS = {
                             invertTime : false,
