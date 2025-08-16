@@ -1,6 +1,7 @@
 name: Deploy Backend to Google App Engine
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - master
